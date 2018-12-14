@@ -1,0 +1,12 @@
+C:\Users\Arno\source\repos\WorldApi\WorldApi\bin\Debug\netcoreapp2.0\WorldApi.deps.json
+C:\Users\Arno\source\repos\WorldApi\WorldApi\bin\Debug\netcoreapp2.0\WorldApi.runtimeconfig.json
+C:\Users\Arno\source\repos\WorldApi\WorldApi\bin\Debug\netcoreapp2.0\WorldApi.runtimeconfig.dev.json
+C:\Users\Arno\source\repos\WorldApi\WorldApi\bin\Debug\netcoreapp2.0\WorldApi.dll
+C:\Users\Arno\source\repos\WorldApi\WorldApi\bin\Debug\netcoreapp2.0\WorldApi.pdb
+C:\Users\Arno\source\repos\WorldApi\WorldApi\obj\Debug\netcoreapp2.0\WorldApi.csprojAssemblyReference.cache
+C:\Users\Arno\source\repos\WorldApi\WorldApi\obj\Debug\netcoreapp2.0\WorldApi.csproj.CoreCompileInputs.cache
+C:\Users\Arno\source\repos\WorldApi\WorldApi\obj\Debug\netcoreapp2.0\WorldApi.AssemblyInfoInputs.cache
+C:\Users\Arno\source\repos\WorldApi\WorldApi\obj\Debug\netcoreapp2.0\WorldApi.AssemblyInfo.cs
+C:\Users\Arno\source\repos\WorldApi\WorldApi\obj\Debug\netcoreapp2.0\WorldApi.dll
+C:\Users\Arno\source\repos\WorldApi\WorldApi\obj\Debug\netcoreapp2.0\WorldApi.pdb
+C:\Users\Arno\source\repos\WorldApi\WorldApi\obj\Debug\netcoreapp2.0\UserSecretsAssemblyInfo.cs
