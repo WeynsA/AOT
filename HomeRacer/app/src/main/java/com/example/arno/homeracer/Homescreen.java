@@ -38,11 +38,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Homescreen extends AppCompatActivity {
-    TextView startLong, startLat, userId, userName;
+    TextView startLong, startLat, userId, userNameTv;
     Button btnSkip;
     JsonObjectRequest jsonObjectRequest;
 
-    public UserData currentUser = new UserData();
+    // public UserData currentUser = new UserData();
     RequestQueue mRequestQueue;
     Bundle bundle;
 
@@ -54,31 +54,34 @@ public class Homescreen extends AppCompatActivity {
         startLat = findViewById(R.id.tvStartLat);
         startLong = findViewById(R.id.tvStartLong);
         userId = findViewById(R.id.tvId);
-        userName = findViewById(R.id.tvUserName);
-        final SharedPreferences userDataPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        //String UID = preferences.getString("UID","");
-        //userId.setText(UID);
+        userNameTv = findViewById(R.id.tvUserName);
 
-        GetGame("1");
-        //final String UID = userDataPref.getString("startLatPref", "");
-         startLat.setText("start latitude is: " + userDataPref.getString("startLatPref",""));
-         userId.setText("start longitude is: " + userDataPref.getString("startLongPref", ""));
-         startLong.setText("End latitude is: " + userDataPref.getString("endLatPref", ""));
-         userName.setText("End longitude is: " + userDataPref.getString("endLongPref", ""));
+        Intent intent = getIntent();
+        UserData usr = (UserData) intent.getParcelableExtra("userToHome");
+        //UserData user = intent.getParcelableExtra("UserToHome");
+        String usernameHome = usr.getUsername();
+        int userIdHome = intent.getIntExtra("userId", 0);
+        /*String usernameHome = intent.getStringExtra("userName");
+        intent.getDoubleExtra("startLat", 0);
+        intent.getDoubleExtra("startLong", 0);
+        intent.getDoubleExtra("endLat", 0);
+        intent.getDoubleExtra("endLong", 0);*/
+
+        userNameTv.setText("Welcome: " + usernameHome);
 
         btnSkip.setOnClickListener(SkipToMap);
 
     }
 
-    private View.OnClickListener SkipToMap = new View.OnClickListener(){
+    private View.OnClickListener SkipToMap = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Intent i = new Intent(Homescreen.this, MapsActivity.class);
             startActivity(i);
         }
     };
-
-    public void GetGame(String UID){
+}
+    /*public void GetGame(String UID){
         final SharedPreferences userDataPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         final SharedPreferences.Editor editor = userDataPref.edit();
 
@@ -140,5 +143,5 @@ public class Homescreen extends AppCompatActivity {
 
         //mRequestQueue.add(jsonObjectRequest);
         Volley.newRequestQueue(this).add(jsonObjectRequest);
-    }
-}
+    }*/
+

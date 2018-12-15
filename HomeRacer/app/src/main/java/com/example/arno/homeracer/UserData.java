@@ -1,6 +1,9 @@
 package com.example.arno.homeracer;
 
 import android.location.Location;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.Size;
 
 import com.android.volley.toolbox.StringRequest;
 
@@ -8,26 +11,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserData implements Serializable{
-    int UserId;
-    double EndLat, EndLong, StartLat, StartLong;
-    String Username;
-    /*public Userdata(){
+public class UserData implements Parcelable {
+    private int UserId;
+    private String Username;
+    private Double StartLat, StartLong, EndLat, EndLong;
 
-        }
-
-    public Userdata(String username, double endLat, double endLong, double startLat
-                    ,double startLong, int userId){
-            this.Username = username;
-            this.UserId = userId;
-            this.StartLat = startLat;
-            this.StartLong = startLong;
-            this.EndLat = endLat;
-            this.EndLong = endLong;
-
-        }*/
-
-    public void setUserId(int _userId){
+    public UserData(){
+        //empty constructor
+    }
+    public void setUserId(int _userId) {
         this.UserId = _userId;
     }
 
@@ -35,35 +27,35 @@ public class UserData implements Serializable{
         return UserId;
     }
 
-    public void setEndLat(double _endLat){
+    public void setEndLat(Double _endLat) {
         this.EndLat = _endLat;
     }
 
-    public double getEndLat() {
+    public Double getEndLat() {
         return EndLat;
     }
 
-    public void setStartLat(double _startLat){
+    public void setStartLat(Double _startLat) {
         this.StartLat = _startLat;
     }
 
-    public double getStartLat() {
+    public Double getStartLat() {
         return StartLat;
     }
 
-    public void setEndLong(double _endLong){
+    public void setEndLong(Double _endLong) {
         this.EndLong = _endLong;
     }
 
-    public double getEndLong() {
+    public Double getEndLong() {
         return EndLong;
     }
 
-    public void setStartLong(double _startLong){
+    public void setStartLong(Double _startLong) {
         this.StartLong = _startLong;
     }
 
-    public double getStartLong() {
+    public Double getStartLong() {
         return StartLong;
     }
 
@@ -74,4 +66,42 @@ public class UserData implements Serializable{
     public String getUsername() {
         return Username;
     }
+
+    public UserData(Parcel in) {
+        UserId = in.readInt();
+        Username = in.readString();
+        StartLat = in.readDouble();
+        StartLong = in.readDouble();
+        EndLat = in.readDouble();
+        EndLong = in.readDouble();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(UserId);
+        parcel.writeString(Username);
+        parcel.writeDouble(StartLat);
+        parcel.writeDouble(StartLong);
+        parcel.writeDouble(EndLat);
+        parcel.writeDouble(EndLong);
+    }
+
+    public static final Parcelable.Creator<UserData> CREATOR = new Parcelable.Creator<UserData>(){
+        @Override
+        public UserData createFromParcel(Parcel parcel) {
+            return new UserData(parcel);
+        }
+
+        @Override
+        public UserData[] newArray(int size) {
+            return new UserData[size];
+        }
+    };
+
+
 }
