@@ -1,8 +1,10 @@
 package com.example.arno.homeracer;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.media.Image;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -10,6 +12,10 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.facebook.places.Places;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -41,9 +47,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
+    Button btnStartRace;
+    Button btnStopRace;
+    Boolean isCounting;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "Moving camera!");
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
@@ -56,12 +66,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
-
-
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        Log.d(TAG, "Moving camera!9");
 
+        isCounting = false;
+
+        btnStartRace = findViewById(R.id.btnStartMap);
+        btnStopRace = findViewById(R.id.btnStopMap);
+
+        btnStartRace.setOnClickListener(StartClick);
+        btnStopRace.setOnClickListener(StopClick);
     }
 
     @Override
@@ -70,55 +84,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             outState.putParcelable(KEY_CAMERA_POSITION, mMap.getCameraPosition());
             outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
             super.onSaveInstanceState(outState);
-            Log.d(TAG, "Moving camera!");
 
         }
     }
 
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        final SharedPreferences userDataPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        double markEndLong = Double.parseDouble(userDataPref.getString("endLongPref",""));
-        double markEndLat = Double.parseDouble(userDataPref.getString("endLatPref",""));
-        double markStartLat = Double.parseDouble(userDataPref.getString("startLatPref",""));
-        double markStartLong = Double.parseDouble(userDataPref.getString("startLongPref",""));
-        Log.d(TAG, "Moving camera!");
+        UserData usr = getIntent().getParcelableExtra("DataToMaps");
+        Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
+        Log.d(TAG, "onMapReady: " + sortRace);
+        Double latitude = 0.0;
+        Double longitude = 0.0;
+        if (sortRace) {
+            //Toast.makeText(getApplicationContext() ,"Button clicked!", Toast.LENGTH_LONG).show();
+            latitude = usr.getStartLat();
+            longitude = usr.getEndLong();
+        }
 
         mMap = googleMap;
 
         // Prompt the user for permission.
         getLocationPermission();
-        Log.d(TAG, "Moving camera!");
 
         // Turn on the My Location layer and the related control on the map.
         updateLocationUI();
-        Log.d(TAG, "Moving camera!");
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
-        Log.d(TAG, "Moving camera!5");
 
         mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(markEndLat, markEndLong))
-                .title("Finish!"));
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(markStartLat, markStartLong))
-                .title("Start!"));
+                    .position(new LatLng(latitude, longitude))
+                    .title("Finish!"));
     }
 
     private void getDeviceLocation() {
-        Log.d(TAG, "Moving camera!");
-
         /*
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
@@ -135,7 +134,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                            Log.d(TAG, "Moving camera!");
 
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
@@ -153,13 +151,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void getLocationPermission() {
-        Log.d(TAG, "Moving camera!");
-
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -175,7 +166,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[],
                                            @NonNull int[] grantResults) {
-        Log.d(TAG, "Moving camera!");
 
         mLocationPermissionGranted = false;
         switch (requestCode) {
@@ -188,13 +178,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         updateLocationUI();
-        Log.d(TAG, "Moving camera!3");
-
     }
 
     private void updateLocationUI() {
-        Log.d(TAG, "Moving camera!");
-
         if (mMap == null) {
             return;
         }
@@ -202,19 +188,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
-                Log.d(TAG, "Moving camera!1");
 
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
                 mLastKnownLocation = null;
                 getLocationPermission();
-                Log.d(TAG, "Moving camera!2");
 
             }
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }
     }
+
+    private View.OnClickListener StartClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (!isCounting){
+                isCounting = true;
+                StartCounter();
+                btnStartRace.setText("Pauze");
+                btnStopRace.setVisibility(View.VISIBLE);
+            }else{
+                isCounting = false;
+                PauzeCounter();
+                btnStartRace.setText("Start");
+            }
+        }
+    };
+
+    private View.OnClickListener StopClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Toast.makeText(getApplicationContext(), "Counter is stopped", Toast.LENGTH_LONG).show();
+            btnStopRace.setVisibility(View.INVISIBLE);
+            btnStartRace.setText("Start");
+            isCounting = false;
+            }
+    };
+
+    public void StartCounter(){
+        Toast.makeText(getApplicationContext(),"Counter is started!", Toast.LENGTH_SHORT).show();
+    }
+
+    public void PauzeCounter(){
+        Toast.makeText(getApplicationContext(),"Counter is pauzed!", Toast.LENGTH_LONG).show();
+    }
+
 }
 

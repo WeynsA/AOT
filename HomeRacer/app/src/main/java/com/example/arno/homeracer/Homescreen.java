@@ -38,9 +38,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Homescreen extends AppCompatActivity {
-    TextView startLong, startLat, userId, userNameTv;
-    Button btnSkip;
+    TextView startLong, startLat, userId, userNameTv, endLong, endLat;
+    Button btnRace1, btnRace2;
     JsonObjectRequest jsonObjectRequest;
+    public static Intent i;
 
     // public UserData currentUser = new UserData();
     RequestQueue mRequestQueue;
@@ -50,98 +51,44 @@ public class Homescreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homescreen);
-        btnSkip = findViewById(R.id.btnStartRace);
+        btnRace1 = findViewById(R.id.btnStartRace);
+        btnRace2 = findViewById(R.id.btnStartRace2);
         startLat = findViewById(R.id.tvStartLat);
         startLong = findViewById(R.id.tvStartLong);
+        endLat = findViewById(R.id.tvEndLat);
+        endLong = findViewById(R.id.tvEndLong);
         userId = findViewById(R.id.tvId);
         userNameTv = findViewById(R.id.tvUserName);
 
         Intent intent = getIntent();
-        UserData usr = (UserData) intent.getParcelableExtra("userToHome");
-        //UserData user = intent.getParcelableExtra("UserToHome");
-        String usernameHome = usr.getUsername();
-        int userIdHome = intent.getIntExtra("userId", 0);
-        /*String usernameHome = intent.getStringExtra("userName");
-        intent.getDoubleExtra("startLat", 0);
-        intent.getDoubleExtra("startLong", 0);
-        intent.getDoubleExtra("endLat", 0);
-        intent.getDoubleExtra("endLong", 0);*/
+        final UserData usr = intent.getParcelableExtra("userToHome");
+        int _id = usr.getUserId();
+        String _username = usr.getUsername();
+        Double _startLat = usr.getStartLat();
+        Double _startLong = usr.getStartLong();
+        Double _endLat = usr.getEndLat();
+        Double _endLong = usr.getEndLong();
 
-        userNameTv.setText("Welcome: " + usernameHome);
+        userNameTv.setText("Welcome: " + _username);
+        startLat.setText("StartLat: " + _startLat);
+        startLong.setText("StartLong: " + _startLong);
+        endLat.setText("EndLat: " + _endLat);
+        endLong.setText("EndLong: " + _endLong);
 
-        btnSkip.setOnClickListener(SkipToMap);
+        i = new Intent(Homescreen.this, MapsActivity.class);
+        i.putExtra("DataToMaps", usr);
 
+        btnRace1.setOnClickListener(StartRace1);
     }
+    String haha;
 
-    private View.OnClickListener SkipToMap = new View.OnClickListener() {
+    private View.OnClickListener StartRace1 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Intent i = new Intent(Homescreen.this, MapsActivity.class);
+            //Intent i = new Intent(Homescreen.this, MapsActivity.class);
+            i.putExtra("SortRace", true);
             startActivity(i);
         }
     };
 }
-    /*public void GetGame(String UID){
-        final SharedPreferences userDataPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        final SharedPreferences.Editor editor = userDataPref.edit();
-
-        String url = "https://worldapi.azurewebsites.net/api/homeracer/user/"+UID;
-        final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("tag", "jsonresponse" + response.toString());
-                        try {
-                            //String name = response.getString("userName");
-                            currentUser.setUserId(response.getInt("userId"));
-                            String userIdPref = String.valueOf(response.getInt("userId"));
-                            currentUser.setStartLat(response.getDouble("startLat"));
-                            String startLatitude = String.valueOf(response.getDouble("startLat"));
-                            currentUser.setStartLong(response.getDouble("startLong"));
-                            String startLongitude = String.valueOf(response.getDouble("startLong"));
-                            currentUser.setEndLat(response.getDouble("endLat"));
-                            String endLatitude = String.valueOf(response.getDouble("endLat"));
-                            currentUser.setEndLong(response.getDouble("endLong"));
-                            String endLongitude = String.valueOf(response.getDouble("endLong"));
-                            currentUser.setUsername(response.getString("userName"));
-                            String userNamePref = (response.getString("userName"));
-
-                            editor.putString("startLatPref", startLatitude);
-                            editor.putString("startLongPref", startLongitude);
-                            editor.putString("endLatPref", endLatitude);
-                            editor.putString( "endLongPref",endLongitude);
-                            editor.putString("userIdPref", userIdPref);
-                            editor.putString("userNamePref",userNamePref);
-                            editor.commit();
-
-                            //startLong.setText(String.valueOf(currentUser.getStartLong()));
-                            //userName.setText(currentUser.getUsername());
-
-                            //Intent sendObj = new Intent(Homescreen.this, Homescreen.class);
-                            bundle = new Bundle();
-                            bundle.putSerializable("userInfo", currentUser);
-                            //sendObj.putExtras(bundle);
-                            //startActivity(sendObj);
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("error", error.toString());
-                    }
-                }
-        );
-        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
-                10000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        //mRequestQueue.add(jsonObjectRequest);
-        Volley.newRequestQueue(this).add(jsonObjectRequest);
-    }*/
 
