@@ -34,6 +34,7 @@ public class Login extends AppCompatActivity {
     private TextView tvRegister;
     private EditText etUser, etPassword;
     public ProgressBar spinner;
+    HighscoreManager hm = new HighscoreManager();
 
     UserData usr = new UserData();
 
@@ -44,6 +45,7 @@ public class Login extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             GetUserData();
+            SwapLayout();
         }
     };
 

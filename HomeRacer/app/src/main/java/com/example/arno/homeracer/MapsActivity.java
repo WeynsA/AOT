@@ -1,10 +1,13 @@
 package com.example.arno.homeracer;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.Image;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -15,7 +18,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.os.SystemClock;
+
 
 import com.facebook.places.Places;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -29,6 +35,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -47,9 +62,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
+    Handler handler;
     Button btnStartRace;
     Button btnStopRace;
     Boolean isCounting;
+    TextView tvCounter;
+
+    int Seconds, Minutes, MilliSeconds;
+    long MilliSecondTime, StartTime, TimeBuff, UpdateTime = 0L;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,12 +93,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         isCounting = false;
+        handler = new Handler();
 
+        tvCounter = findViewById(R.id.tvCounter);
         btnStartRace = findViewById(R.id.btnStartMap);
         btnStopRace = findViewById(R.id.btnStopMap);
-
         btnStartRace.setOnClickListener(StartClick);
         btnStopRace.setOnClickListener(StopClick);
+
     }
 
     @Override
@@ -92,12 +117,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
         Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
-        Log.d(TAG, "onMapReady: " + sortRace);
+
         Double latitude = 0.0;
         Double longitude = 0.0;
         if (sortRace) {
             //Toast.makeText(getApplicationContext() ,"Button clicked!", Toast.LENGTH_LONG).show();
             latitude = usr.getStartLat();
+            longitude = usr.getStartLong();
+        }else{
+            latitude = usr.getEndLat();
             longitude = usr.getEndLong();
         }
 
@@ -111,9 +139,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
-
+        LatLng finish = new LatLng(latitude, longitude);
+        Log.d(TAG, "onMapReady: " + finish);
         mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(latitude, longitude))
+                    .position(finish)
                     .title("Finish!"));
     }
 
@@ -220,20 +249,97 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private View.OnClickListener StopClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Toast.makeText(getApplicationContext(), "Counter is stopped", Toast.LENGTH_LONG).show();
+            PauzeCounter();
             btnStopRace.setVisibility(View.INVISIBLE);
             btnStartRace.setText("Start");
             isCounting = false;
+            StopCounter();
             }
     };
 
     public void StartCounter(){
-        Toast.makeText(getApplicationContext(),"Counter is started!", Toast.LENGTH_SHORT).show();
+        StartTime = SystemClock.uptimeMillis();
+        handler.postDelayed(runnable, 0);
     }
 
     public void PauzeCounter(){
-        Toast.makeText(getApplicationContext(),"Counter is pauzed!", Toast.LENGTH_LONG).show();
+        TimeBuff += MilliSecondTime;
+
+        handler.removeCallbacks(runnable);
     }
 
+    public void StopCounter(){
+        HighscoreAdd(UpdateTime);
+        MilliSecondTime = 0L ;
+        StartTime = 0L ;
+        TimeBuff = 0L ;
+        UpdateTime = 0L ;
+        Seconds = 0 ;
+        Minutes = 0 ;
+        MilliSeconds = 0 ;
+
+        tvCounter.setText("00:00:00");
+    }
+
+    public Runnable runnable = new Runnable() {
+
+        public void run() {
+            MilliSecondTime = SystemClock.uptimeMillis() - StartTime;
+            UpdateTime = TimeBuff + MilliSecondTime;
+
+            Seconds = (int) (UpdateTime / 1000);
+            Minutes = Seconds / 60;
+            Seconds = Seconds % 60;
+
+            MilliSeconds = (int) (UpdateTime % 1000);
+
+            tvCounter.setText("" + Minutes + ":"
+                    + String.format("%02d", Seconds) + ":"
+                    + String.format("%03d", MilliSeconds));
+
+            handler.postDelayed(this, 0);
+        }
+    };
+
+    ArrayList<Score> HighScore = new ArrayList<Score>(3);
+
+    public void HighscoreAdd(Long timeScore ){
+        UserData usr = getIntent().getParcelableExtra("DataToMaps");
+        Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
+
+        Log.d(TAG, "HighscoreAdd: ADDEDED");
+        Score user = new Score(usr.getUsername(), timeScore, sortRace);
+
+        HighScore.add(user);
+
+        Collections.sort(HighScore, new Comparator<Score>() {
+            public int compare (Score s1, Score s2){
+                return Long.compare(s1.getTime(), s2.getTime());
+            }
+        });
+
+        int i = 0;
+        for (Score _score:HighScore){
+            i++;
+            Log.d(TAG, "HighscoreAdd"+i+" : " + "username: " +usr.getUsername()+" time: "+ _score.getTime());
+        }
+    }
+
+   /* public void saveArrayList(ArrayList<Score> list, String key){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = prefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(list);
+        editor.putString(key, json);
+        editor.apply();     // This line is IMPORTANT !!!
+    }
+
+    public ArrayList<String> getArrayList(String key){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        Gson gson = new Gson();
+        String json = prefs.getString(key, null);
+        Type type = new TypeToken<ArrayList<String>>() {}.getType();
+        return gson.fromJson(json, type);
+    }*/
 }
 

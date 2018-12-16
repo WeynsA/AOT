@@ -79,16 +79,25 @@ public class Homescreen extends AppCompatActivity {
         i.putExtra("DataToMaps", usr);
 
         btnRace1.setOnClickListener(StartRace1);
-    }
-    String haha;
+        btnRace2.setOnClickListener(StartRace2);
+       }
+
 
     private View.OnClickListener StartRace1 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            //Intent i = new Intent(Homescreen.this, MapsActivity.class);
             i.putExtra("SortRace", true);
             startActivity(i);
         }
     };
+
+    private View.OnClickListener StartRace2 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            i.putExtra("SortRace", false);
+            startActivity(i);
+        }
+    };
+
 }
 
