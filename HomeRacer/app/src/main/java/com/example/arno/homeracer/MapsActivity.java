@@ -32,11 +32,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -68,6 +68,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Boolean isCounting;
     TextView tvCounter;
 
+    private Racer racer;
+
+
+
     int Seconds, Minutes, MilliSeconds;
     long MilliSecondTime, StartTime, TimeBuff, UpdateTime = 0L;
 
@@ -95,12 +99,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         isCounting = false;
         handler = new Handler();
 
+        UserData usr = getIntent().getParcelableExtra("DataToMaps");
+
         tvCounter = findViewById(R.id.tvCounter);
         btnStartRace = findViewById(R.id.btnStartMap);
         btnStopRace = findViewById(R.id.btnStopMap);
         btnStartRace.setOnClickListener(StartClick);
         btnStopRace.setOnClickListener(StopClick);
 
+
+        racer = new Racer(new LatLng(usr.getStartLat(), usr.getStartLong()));
     }
 
     @Override
@@ -131,6 +139,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap = googleMap;
 
+
         // Prompt the user for permission.
         getLocationPermission();
 
@@ -144,6 +153,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addMarker(new MarkerOptions()
                     .position(finish)
                     .title("Finish!"));
+
+        racer.Draw(mMap, getApplicationContext());
+
+        Marker marker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(usr.getEndLat(), usr.getEndLong()))
+                .title("ghost!"));
+
+        racer.Move(new LatLng(usr.getEndLat(),usr.getEndLong()), marker,60000);
     }
 
     private void getDeviceLocation() {
