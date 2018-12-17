@@ -78,6 +78,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker destMarker;
 
     private Racer racer;
+    private Racer racer1;
 
 
 
@@ -115,9 +116,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnStopRace = findViewById(R.id.btnStopMap);
         btnStartRace.setOnClickListener(StartClick);
         btnStopRace.setOnClickListener(StopClick);
-
-
-        racer = new Racer(new LatLng(usr.getStartLat(), usr.getStartLong()));
     }
 
     @Override
@@ -132,22 +130,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
         Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
 
+        LatLng startLtLn, endLtLn;
+
         Double latitude = 0.0;
         Double longitude = 0.0;
+
         if (sortRace) {
-            //Toast.makeText(getApplicationContext() ,"Button clicked!", Toast.LENGTH_LONG).show();
-            latitude = usr.getStartLat();
-            longitude = usr.getStartLong();
+            startLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
+            endLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
+            racer = new Racer(startLtLn);
+
+
         }else{
-            latitude = usr.getEndLat();
-            longitude = usr.getEndLong();
+            endLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
+            startLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
+            racer = new Racer(startLtLn);
+
         }
 
-        mMap = googleMap;
+        mMap.addMarker(new MarkerOptions()
+                .position(startLtLn)
+                .title("Start!"));
+        mMap.addMarker(new MarkerOptions()
+                .position(endLtLn)
+                .title("Finish!"));
+        Marker marker = mMap.addMarker(new MarkerOptions()
+                .position(endLtLn)
+                .title("ghost!"));
+
+
+        racer.Draw(mMap, getApplicationContext());
+        racer.Move(endLtLn, marker,60000);
+
+
+        //racer1.Move(startLtLn, marker,60000);
+
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -236,19 +259,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
-        LatLng finish = new LatLng(latitude, longitude);
-        Log.d(TAG, "onMapReady: " + finish);
-        mMap.addMarker(new MarkerOptions()
-                    .position(finish)
-                    .title("Finish!"));
 
-        racer.Draw(mMap, getApplicationContext());
-
-        Marker marker = mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(usr.getEndLat(), usr.getEndLong()))
-                .title("ghost!"));
-
-        racer.Move(new LatLng(usr.getEndLat(),usr.getEndLong()), marker,60000);
     }
 
     private void getDeviceLocation() {
