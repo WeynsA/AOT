@@ -1,41 +1,14 @@
 package com.example.arno.homeracer;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.location.Location;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Cache;
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Network;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.DiskBasedCache;
-import com.android.volley.toolbox.HurlStack;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class Homescreen extends AppCompatActivity {
     TextView startLong, startLat, userId, userNameTv, endLong, endLat;
@@ -55,7 +28,7 @@ public class Homescreen extends AppCompatActivity {
         btnRace2 = findViewById(R.id.btnStartRace2);
         startLat = findViewById(R.id.tvStartLat);
         startLong = findViewById(R.id.tvStartLong);
-        endLat = findViewById(R.id.tvEndLat);
+        endLat = findViewById(R.id.tvStartLong);
         endLong = findViewById(R.id.tvEndLong);
         userId = findViewById(R.id.tvId);
         userNameTv = findViewById(R.id.tvUserName);

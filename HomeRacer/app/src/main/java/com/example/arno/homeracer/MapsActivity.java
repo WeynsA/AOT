@@ -1,10 +1,13 @@
 package com.example.arno.homeracer;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.Image;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -15,6 +18,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -45,6 +49,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -61,12 +67,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
+    private final static int LOCATION_REQUEST_CODE = 101;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     Handler handler;
     Button btnStartRace;
     Button btnStopRace;
     Boolean isCounting;
     TextView tvCounter;
+    Marker destMarker;
 
     private Racer racer;
 
@@ -123,6 +132,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
         Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
 
@@ -139,12 +149,90 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap = googleMap;
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-        // Prompt the user for permission.
-        getLocationPermission();
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
 
-        // Turn on the My Location layer and the related control on the map.
-        updateLocationUI();
+        final LocationManager locationManager= (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
+
+        final LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                LatLng center1 = new LatLng(location.getLatitude(),location.getLongitude());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(center1, 12));
+                requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
+
+                // Prompt the user for permission.
+                getLocationPermission();
+
+                // Turn on the My Location layer and the related control on the map.
+                //updateLocationUI();
+
+
+                if(destMarker != null){
+                    Location markerLoc = new Location("Destination");
+                    markerLoc.setLatitude(destMarker.getPosition().latitude);
+                    markerLoc.setLongitude(destMarker.getPosition().longitude);
+                    float distance = location.distanceTo(markerLoc);
+
+                    Log.d("distancevalue", String.valueOf(distance));
+
+                    if(distance<20){
+                        Log.d("toast","locations are the same" + distance);
+
+                        Toast.makeText(getApplicationContext(),"You have arrived at your destination",Toast.LENGTH_LONG).show();
+
+                    }
+                    if(distance>20)
+                    {
+                        Toast.makeText(getApplicationContext(), "not at destination", Toast.LENGTH_LONG).show();
+                        Log.d("toast","locations are not the same" + distance);
+
+                    }}
+            }
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+
+            }
+        };
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,locationListener);
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                destMarker = marker;
+                marker.showInfoWindow();
+                return true;
+            }
+        });
+        GoogleMap.InfoWindowAdapter infoWindowAdapter = new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                Location markerLoc = new Location("Destination");
+                markerLoc.setLatitude(destMarker.getPosition().latitude);
+                markerLoc.setLongitude(destMarker.getPosition().longitude);
+                float dist = mMap.getMyLocation().distanceTo(markerLoc);
+
+                return null;
+            }
+        };
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
@@ -208,44 +296,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    protected void requestPermission(String permissionType, int requestCode) {
+        int permission = ContextCompat.checkSelfPermission(this,
+                permissionType);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{permissionType}, requestCode
+            );
+        }
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-
-        mLocationPermissionGranted = false;
+                                           String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mLocationPermissionGranted = true;
+            case LOCATION_REQUEST_CODE: {
+
+                if (grantResults.length == 0
+                        || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Unable to show location - permission required", Toast.LENGTH_LONG).show();
                 }
+                return;
             }
         }
-        updateLocationUI();
     }
 
-    private void updateLocationUI() {
-        if (mMap == null) {
-            return;
-        }
-        try {
-            if (mLocationPermissionGranted) {
-                mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
-
-            } else {
-                mMap.setMyLocationEnabled(false);
-                mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mLastKnownLocation = null;
-                getLocationPermission();
-
-            }
-        } catch (SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
 
     private View.OnClickListener StartClick = new View.OnClickListener() {
         @Override

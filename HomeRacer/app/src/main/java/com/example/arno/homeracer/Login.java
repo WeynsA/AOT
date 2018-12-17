@@ -30,7 +30,7 @@ import org.json.JSONObject;
 
 public class Login extends AppCompatActivity {
 
-    private Button btnStart, btnSkip;
+    private Button btnStart;
     private TextView tvRegister;
     private EditText etUser, etPassword;
     public ProgressBar spinner;
@@ -46,15 +46,6 @@ public class Login extends AppCompatActivity {
         public void onClick(View v) {
             GetUserData();
             SwapLayout();
-        }
-    };
-
-    private View.OnClickListener SkipToMap = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            SwapLayout();
-            Intent i = new Intent(Login.this, MapsActivity.class);
-            startActivity(i);
         }
     };
 
@@ -74,11 +65,9 @@ public class Login extends AppCompatActivity {
         if (btnStart.isShown())
         {
             btnStart.setVisibility(View.GONE);
-            btnSkip.setVisibility(View.GONE);
             spinner.setVisibility(View.VISIBLE);
         } else {
             btnStart.setVisibility(View.VISIBLE);
-            btnSkip.setVisibility(View.VISIBLE);
             spinner.setVisibility(View.GONE);
         }
     }
@@ -89,14 +78,12 @@ public class Login extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         btnStart = findViewById(R.id.btnLogin);
-        btnSkip = findViewById(R.id.btnSkip);
         spinner = findViewById(R.id.spinner);
         tvRegister = findViewById(R.id.tvRegister);
         etUser = findViewById(R.id.etUser);
         etPassword = findViewById(R.id.etPassword);
 
         btnStart.setOnClickListener(UserLogin);
-        btnSkip.setOnClickListener(SkipToMap);
         tvRegister.setOnClickListener(ToRegister);
     }
 
