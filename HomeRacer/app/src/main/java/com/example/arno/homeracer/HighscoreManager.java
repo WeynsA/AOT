@@ -1,5 +1,8 @@
 package com.example.arno.homeracer;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -9,9 +12,19 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class HighscoreManager {
+public class HighscoreManager  {
     // An arraylist of the type "score" we will use to work with the scores inside the class
-    private ArrayList<Score> scores;
+    private ArrayList<Score> scores=null;
+
+
+    public void setScores(ArrayList<Score> scores) {
+        this.scores = scores;
+    }
+
+    public static String getHighscoreFile() {
+
+        return HIGHSCORE_FILE;
+    }
 
     // The name of the file where the highscores will be saved
     private static final String HIGHSCORE_FILE = "scores.dat";
@@ -102,4 +115,16 @@ public class HighscoreManager {
         }
         return highscoreString;
     }
+
+
+
+
+    protected HighscoreManager(Parcel in) {
+        this.scores = new ArrayList<Score>();
+        in.readList(this.scores, Score.class.getClassLoader());
+        this.outputStream = in.readParcelable(ObjectOutputStream.class.getClassLoader());
+        this.inputStream = in.readParcelable(ObjectInputStream.class.getClassLoader());
+    }
+
+
 }

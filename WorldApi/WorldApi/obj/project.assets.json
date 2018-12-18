@@ -13264,11 +13264,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Arno\\source\\repos\\WorldApi\\WorldApi\\WorldApi.csproj",
+      "projectUniqueName": "C:\\Users\\Arno\\Desktop\\AOT\\WorldApi\\WorldApi\\WorldApi.csproj",
       "projectName": "WorldApi",
-      "projectPath": "C:\\Users\\Arno\\source\\repos\\WorldApi\\WorldApi\\WorldApi.csproj",
+      "projectPath": "C:\\Users\\Arno\\Desktop\\AOT\\WorldApi\\WorldApi\\WorldApi.csproj",
       "packagesPath": "C:\\Users\\Arno\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Arno\\source\\repos\\WorldApi\\WorldApi\\obj\\",
+      "outputPath": "C:\\Users\\Arno\\Desktop\\AOT\\WorldApi\\WorldApi\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

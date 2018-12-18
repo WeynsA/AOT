@@ -12,21 +12,29 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.text.TextUtils;
+import android.view.inputmethod.InputMethodManager;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.net.URL;
+
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
-    private EditText etRUsername, etPassword, etStartLong, etStartLat, etEndLong, etEndLat, etStreet1, etStreet2, etCity1, etCity2;
+    private EditText etRUsername, etPassword, etStartLong, etStartLat, etEndLong, etREndLat, etStreet1, etStreet2, etCity1, etCity2;
     String Username, Password, Street1, Street2, City1, City2;
     Double RStartLong, RStartLat, REndLong, REndLat;
     Button btnRegister, btnStartLtLn, btnEndLtLn;
@@ -55,24 +63,15 @@ public class RegisterActivity extends AppCompatActivity {
             Street2 = String.valueOf(etStreet2.getText());
             City2 = String.valueOf(etCity2.getText());
 
-            getLatLng(Street2, City2, etEndLat, etEndLong);
+            getLatLng(Street2, City2, etREndLat, etEndLong);
         }
     };
 
     public View.OnClickListener Register = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            /*Username = String.valueOf(etRUsername.getText());
-            Password = String.valueOf(etPassword.getText());
-            Street1 = String.valueOf(etStreet1.getText());
-            City1 = String.valueOf(etCity1.getText());
-            Street2 = String.valueOf(etStreet2.getText());
-            City2 = String.valueOf(etCity2.getText());
-
-            getLatLng();
-            String urly = getLatLng();
-            Log.d("RegisterAcitivy", "onClick: " + urly);*/
-            Toast.makeText(RegisterActivity.this, "Register successful.", Toast.LENGTH_SHORT).show();
+            PostRequest();
+            finish();
         }
     };
 
@@ -86,7 +85,7 @@ public class RegisterActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         etStartLat = findViewById(R.id.etStartLat);
         etStartLong = findViewById(R.id.etStartLong);
-        etEndLat = findViewById(R.id.etEndLat);
+        etREndLat = findViewById(R.id.etEndLat);
         etEndLong = findViewById(R.id.etEndLong);
         etStreet1 = findViewById(R.id.etSteetname1);
         etCity1 = findViewById(R.id.etCity1);
@@ -147,5 +146,43 @@ public class RegisterActivity extends AppCompatActivity {
                 }
         );
         Volley.newRequestQueue(this).add(jsonObjectRequest);
+    }
+
+    private void PostRequest() {
+        String url = "https://worldapi2.azurewebsites.net/api/homeracer/user";
+
+        Username =  String.valueOf(etRUsername.getText());
+        Street1 =  String.valueOf(etStreet1.getText());
+        Street2 =  String.valueOf(etStreet2.getText());
+        REndLat =  Double.parseDouble(etREndLat.getText().toString());
+        REndLong =  Double.parseDouble(etEndLong.getText().toString());
+        RStartLat =  Double.parseDouble(etStartLat.getText().toString());
+        RStartLong =  Double.parseDouble(etStartLong.getText().toString());
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", Username);
+        params.put("password", "123546");
+        params.put("startLat", RStartLat.toString());
+        params.put("startLong", RStartLong.toString());
+        params.put("endLat", REndLat.toString());
+        params.put("endLong", REndLong.toString());
+        params.put("startStreetname", Street1);
+        params.put("endStreetname", Street2);
+        JSONObject jsonObj = new JSONObject(params);
+
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d("response", response.toString());;
+                String tekst = response.toString();
+                Toast.makeText(getApplicationContext(), "Register successful!", Toast.LENGTH_SHORT).show();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Something went wrong!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        Volley.newRequestQueue(this).add(jsonObjReq);
     }
 }

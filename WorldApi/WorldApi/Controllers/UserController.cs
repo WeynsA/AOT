@@ -25,13 +25,22 @@ namespace WorldApi.Controllers
                 return db.Users.ToList();
             }
 
-        [HttpGet("{userId}")]
-        public IActionResult GetUser(int userId)
+        [HttpGet("{userName}")]
+        public IActionResult GetUser(string username)
         {
-            var user = db.Users.Find(userId);
+            var user = db.Users.SingleOrDefault(x => x.UserName == username);
             if (user == null)
                 return NotFound();
             return Ok(user);
+        }
+
+        [HttpPost]
+        public IActionResult CreateUser([FromBody] User newUser)
+        {
+            db.Users.Add(newUser);
+            db.SaveChanges();
+
+            return Created("", newUser);
         }
     }
 }

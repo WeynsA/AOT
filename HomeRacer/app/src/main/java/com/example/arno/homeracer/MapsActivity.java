@@ -34,21 +34,32 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -63,7 +74,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
-    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
+    private final LatLng mDefaultLocation = new LatLng(4, 51);
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
@@ -78,7 +89,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker destMarker;
 
     private Racer racer;
-    private Racer racer1;
+
+    boolean isRacing;
+    boolean isFinished;
 
 
 
@@ -106,8 +119,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        isCounting = false;
         handler = new Handler();
+        isCounting = false;
+        isRacing = false;
+        isFinished = false;
 
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
 
@@ -136,7 +151,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
         Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
 
-        LatLng startLtLn, endLtLn;
+        final LatLng startLtLn, endLtLn;
 
         Double latitude = 0.0;
         Double longitude = 0.0;
@@ -145,32 +160,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             startLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
             endLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
             racer = new Racer(startLtLn);
-
-
         }else{
             endLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
             startLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
             racer = new Racer(startLtLn);
-
         }
+        racer.Draw(mMap, getApplicationContext());
+
 
         mMap.addMarker(new MarkerOptions()
                 .position(startLtLn)
-                .title("Start!"));
+                .title("Start!")
+                .draggable(true));
+
         mMap.addMarker(new MarkerOptions()
                 .position(endLtLn)
-                .title("Finish!"));
-        Marker marker = mMap.addMarker(new MarkerOptions()
-                .position(endLtLn)
-                .title("ghost!"));
-
-
-        racer.Draw(mMap, getApplicationContext());
-        racer.Move(endLtLn, marker,60000);
-
-
-        //racer1.Move(startLtLn, marker,60000);
-
+                .title("Finish!")
+                .draggable(true));
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -184,31 +190,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onLocationChanged(Location location) {
                 LatLng center1 = new LatLng(location.getLatitude(),location.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(center1, 12));
                 requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
 
                 // Prompt the user for permission.
-                getLocationPermission();
+                //getLocationPermission();
 
                 // Turn on the My Location layer and the related control on the map.
                 //updateLocationUI();
 
+                if (isCounting && !isRacing) {
+                    isRacing = true;
 
-                if(destMarker != null){
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(center1, 13));
+
+                    racer.Move(endLtLn, racer.marker,30000);
+                }
+
+                if(isCounting && destMarker != null){
                     Location markerLoc = new Location("Destination");
                     markerLoc.setLatitude(destMarker.getPosition().latitude);
+                    //markerLoc.setLatitude(endLtLn.latitude);
                     markerLoc.setLongitude(destMarker.getPosition().longitude);
+                    //markerLoc.setLongitude(endLtLn.longitude);
                     float distance = location.distanceTo(markerLoc);
-
+                    Log.d(TAG, "onLocationChanged: " + markerLoc);
                     Log.d("distancevalue", String.valueOf(distance));
 
-                    if(distance<20){
-                        Log.d("toast","locations are the same" + distance);
-
+                    if(distance<100 && !isFinished){
+                        isFinished = true;
                         Toast.makeText(getApplicationContext(),"You have arrived at your destination",Toast.LENGTH_LONG).show();
-
+                        Intent i = new Intent(MapsActivity.this, HighScoreActivity.class);
+                        i.putExtra("YourTime",UpdateTime);
+                        StopCounter();
+                        startActivity(i);
+                        finish();
                     }
-                    if(distance>20)
+                    if(distance>100)
                     {
                         Toast.makeText(getApplicationContext(), "not at destination", Toast.LENGTH_LONG).show();
                         Log.d("toast","locations are not the same" + distance);
@@ -232,79 +249,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         };
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,locationListener);
 
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
-            public boolean onMarkerClick(Marker marker) {
+            public void onMarkerDragStart(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
                 destMarker = marker;
                 marker.showInfoWindow();
-                return true;
+
             }
         });
-        GoogleMap.InfoWindowAdapter infoWindowAdapter = new GoogleMap.InfoWindowAdapter() {
-            @Override
-            public View getInfoWindow(Marker marker) {
-                return null;
-            }
-
-            @Override
-            public View getInfoContents(Marker marker) {
-                Location markerLoc = new Location("Destination");
-                markerLoc.setLatitude(destMarker.getPosition().latitude);
-                markerLoc.setLongitude(destMarker.getPosition().longitude);
-                float dist = mMap.getMyLocation().distanceTo(markerLoc);
-
-                return null;
-            }
-        };
-
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
-
-    }
-
-    private void getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-            if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-
-                        } else {
-                            Log.d(TAG, "Current location is null. Using defaults.");
-                            Log.e(TAG, "Exception: %s", task.getException());
-                            mMap.moveCamera(CameraUpdateFactory
-                                    .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
-            }
-        } catch (SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-    private void getLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
     }
 
     protected void requestPermission(String permissionType, int requestCode) {
@@ -332,10 +294,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
     private View.OnClickListener StartClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+
             if (!isCounting){
                 isCounting = true;
                 StartCounter();
@@ -363,6 +325,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void StartCounter(){
         StartTime = SystemClock.uptimeMillis();
         handler.postDelayed(runnable, 0);
+
     }
 
     public void PauzeCounter(){
@@ -404,7 +367,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    ArrayList<Score> HighScore = new ArrayList<Score>(3);
+    ArrayList<Score> HighScore = new ArrayList<Score>();
+
 
     public void HighscoreAdd(Long timeScore ){
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
@@ -414,12 +378,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Score user = new Score(usr.getUsername(), timeScore, sortRace);
 
         HighScore.add(user);
-
-        Collections.sort(HighScore, new Comparator<Score>() {
-            public int compare (Score s1, Score s2){
-                return Long.compare(s1.getTime(), s2.getTime());
-            }
-        });
+        addInJSONArray(user);
 
         int i = 0;
         for (Score _score:HighScore){
@@ -427,22 +386,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, "HighscoreAdd"+i+" : " + "username: " +usr.getUsername()+" time: "+ _score.getTime());
         }
     }
-
-   /* public void saveArrayList(ArrayList<Score> list, String key){
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = prefs.edit();
+    public List<Score> getDataFromSharedPreferences(Context context){
         Gson gson = new Gson();
-        String json = gson.toJson(list);
-        editor.putString(key, json);
-        editor.apply();     // This line is IMPORTANT !!!
+        List<Score> productFromShared = new ArrayList<>();
+        SharedPreferences sharedPref = context.getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+        String jsonPreferences = sharedPref.getString("Score", "");
+
+        Type type = new TypeToken<List<Score>>() {}.getType();
+        productFromShared = gson.fromJson(jsonPreferences, type);
+
+        return productFromShared;
     }
+    private void addInJSONArray(Score productToAdd){
 
-    public ArrayList<String> getArrayList(String key){
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         Gson gson = new Gson();
-        String json = prefs.getString(key, null);
-        Type type = new TypeToken<ArrayList<String>>() {}.getType();
-        return gson.fromJson(json, type);
-    }*/
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+
+        String jsonSaved = sharedPref.getString("Score", "");
+        String jsonNewproductToAdd = gson.toJson(productToAdd);
+
+        JSONArray jsonArrayProduct= new JSONArray();
+
+        try {
+            if(jsonSaved.length()!=0){
+                jsonArrayProduct = new JSONArray(jsonSaved);
+            }
+            jsonArrayProduct.put(new JSONObject(jsonNewproductToAdd));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        //SAVE NEW ARRAY
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("Score", String.valueOf(jsonArrayProduct));
+        editor.commit();
+    }
 }
 

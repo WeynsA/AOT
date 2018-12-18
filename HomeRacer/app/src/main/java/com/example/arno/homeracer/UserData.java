@@ -13,7 +13,7 @@ import java.util.List;
 
 public class UserData implements Parcelable {
     private int UserId;
-    private String Username;
+    private String Username, StartStreetName, EndStreetName;
     private Double StartLat, StartLong, EndLat, EndLong;
 
     public UserData(){
@@ -33,6 +33,25 @@ public class UserData implements Parcelable {
 
     public Double getEndLat() {
         return EndLat;
+    }
+
+    public void setEndStreetName(String endStreetName) {
+        this.EndStreetName = endStreetName;
+    }
+
+    public String getEndStreetName() {
+
+        return EndStreetName;
+    }
+
+    public void setStartStreetName(String startStreetName) {
+
+        this.StartStreetName = startStreetName;
+    }
+
+    public String getStartStreetName() {
+
+        return StartStreetName;
     }
 
     public void setStartLat(Double _startLat) {
@@ -74,6 +93,8 @@ public class UserData implements Parcelable {
         StartLong = in.readDouble();
         EndLat = in.readDouble();
         EndLong = in.readDouble();
+        StartStreetName = in.readString();
+        EndStreetName = in.readString();
     }
 
     @Override
@@ -89,6 +110,8 @@ public class UserData implements Parcelable {
         parcel.writeDouble(StartLong);
         parcel.writeDouble(EndLat);
         parcel.writeDouble(EndLong);
+        parcel.writeString(StartStreetName);
+        parcel.writeString(EndStreetName);
     }
 
     public static final Parcelable.Creator<UserData> CREATOR = new Parcelable.Creator<UserData>(){

@@ -14,5 +14,8 @@ namespace WorldApi.Model
         public double StartLong { get; set; }
         public double EndLat { get; set; }
         public double EndLong { get; set; }
+        public string StartStreetname { get; set; }
+        public string EndStreetname { get; set; }
+
     }
 }

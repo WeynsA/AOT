@@ -24,17 +24,24 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 public class Login extends AppCompatActivity {
 
-    private Button btnStart;
+    private Button btnStart, btnDev;
     private TextView tvRegister;
     private EditText etUser, etPassword;
     public ProgressBar spinner;
-    HighscoreManager hm = new HighscoreManager();
 
     UserData usr = new UserData();
 
@@ -46,6 +53,27 @@ public class Login extends AppCompatActivity {
         public void onClick(View v) {
             GetUserData();
             SwapLayout();
+        }
+    };
+
+    private View.OnClickListener DevOption = new View.OnClickListener(){
+        @Override
+        public void onClick(View v) {
+
+            MapsActivity mapsActivity = new MapsActivity();
+            List<Score> list = mapsActivity.getDataFromSharedPreferences( Login.this);
+
+            Collections.sort(list, new Comparator<Score>() {
+                public int compare (Score s1, Score s2){
+                    return Long.compare(s1.getTime(), s2.getTime());
+                }
+            });
+
+            int i = 0;
+            for (Score _scores:list){
+                i++;
+                Log.d("PLZWORK", "HighscoreAdd"+i+" : " + "username: " +usr.getUsername()+" time: "+ _scores.getTime());
+            }
         }
     };
 
@@ -78,31 +106,35 @@ public class Login extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         btnStart = findViewById(R.id.btnLogin);
+        btnDev = findViewById(R.id.btnDev);
         spinner = findViewById(R.id.spinner);
         tvRegister = findViewById(R.id.tvRegister);
         etUser = findViewById(R.id.etUser);
         etPassword = findViewById(R.id.etPassword);
 
         btnStart.setOnClickListener(UserLogin);
+        btnDev.setOnClickListener(DevOption);
         tvRegister.setOnClickListener(ToRegister);
     }
 
     public void GetUserData(){
         EditText etUserName = findViewById(R.id.etUser);
 
-        String url = "https://worldapi.azurewebsites.net/api/homeracer/user/"+etUserName.getText();
+        String url = "https://worldapi2.azurewebsites.net/api/homeracer/user/"+etUserName.getText();
         final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d("tag", "jsonresponse" + response.toString());
                         try {
-                            usr.setUserId((response.getInt("userId")));
+                            usr.setUserId(response.getInt("userId"));
                             usr.setUsername(response.getString("userName"));
-                            usr.setStartLat((response.getDouble("startLat")));
+                            usr.setStartLat(response.getDouble("startLat"));
                             usr.setStartLong(response.getDouble("startLong"));
-                            usr.setEndLat((response.getDouble("endLat")));
-                            usr.setEndLong((response.getDouble("endLong")));
+                            usr.setStartStreetName(response.getString("startStreetname"));
+                            usr.setEndLat(response.getDouble("endLat"));
+                            usr.setEndLong(response.getDouble("endLong"));
+                            usr.setEndStreetName(response.getString("endStreetname"));
 
                             Intent intent = new Intent(Login.this, Homescreen.class);
                             intent.putExtra("userToHome", usr);
