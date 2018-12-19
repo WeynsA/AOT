@@ -131,13 +131,14 @@ public class Login extends AppCompatActivity {
                             usr.setUsername(response.getString("userName"));
                             usr.setStartLat(response.getDouble("startLat"));
                             usr.setStartLong(response.getDouble("startLong"));
-                            usr.setStartStreetName(response.getString("startStreetname"));
                             usr.setEndLat(response.getDouble("endLat"));
                             usr.setEndLong(response.getDouble("endLong"));
+                            usr.setStartStreetName(response.getString("startStreetname"));
                             usr.setEndStreetName(response.getString("endStreetname"));
 
                             Intent intent = new Intent(Login.this, Homescreen.class);
                             intent.putExtra("userToHome", usr);
+                            SwapLayout();
                             startActivity(intent);
                         } catch (JSONException e) {
                             e.printStackTrace();

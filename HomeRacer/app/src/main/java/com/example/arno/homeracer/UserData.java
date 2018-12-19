@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import android.util.Size;
 
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -15,9 +16,11 @@ public class UserData implements Parcelable {
     private int UserId;
     private String Username, StartStreetName, EndStreetName;
     private Double StartLat, StartLong, EndLat, EndLong;
+    private LatLng StartLtLn, EndLtLn;
+    private Boolean toHome;
 
     public UserData(){
-        //empty constructor
+        toHome = false;
     }
     public void setUserId(int _userId) {
         this.UserId = _userId;
@@ -42,6 +45,14 @@ public class UserData implements Parcelable {
     public String getEndStreetName() {
 
         return EndStreetName;
+    }
+
+    public void setRace(Boolean home) {
+        toHome = home;
+    }
+
+    public Boolean getRace() {
+        return toHome;
     }
 
     public void setStartStreetName(String startStreetName) {
@@ -70,6 +81,20 @@ public class UserData implements Parcelable {
         return EndLong;
     }
 
+    public LatLng getStartLtLn(){
+        if (toHome)
+            StartLtLn = new LatLng(StartLat, StartLong);
+        else StartLtLn = new LatLng(EndLat, EndLong);
+        return StartLtLn;
+    }
+
+    public LatLng getEndLtLn(){
+        if (toHome)
+            EndLtLn = new LatLng(EndLat,EndLong);
+        else EndLtLn = new LatLng(StartLat, StartLong);
+        return  EndLtLn;
+    }
+
     public void setStartLong(Double _startLong) {
         this.StartLong = _startLong;
     }
@@ -95,6 +120,10 @@ public class UserData implements Parcelable {
         EndLong = in.readDouble();
         StartStreetName = in.readString();
         EndStreetName = in.readString();
+        StartLtLn = in.readParcelable(LatLng.class.getClassLoader());
+        EndLtLn = in.readParcelable(LatLng.class.getClassLoader());
+        toHome = (in.readInt() == 0)?false:true;
+
     }
 
     @Override
@@ -112,6 +141,9 @@ public class UserData implements Parcelable {
         parcel.writeDouble(EndLong);
         parcel.writeString(StartStreetName);
         parcel.writeString(EndStreetName);
+        parcel.writeParcelable(this.StartLtLn, i);
+        parcel.writeParcelable(this.EndLtLn, i);
+        parcel.writeInt(toHome ? 1:0);
     }
 
     public static final Parcelable.Creator<UserData> CREATOR = new Parcelable.Creator<UserData>(){

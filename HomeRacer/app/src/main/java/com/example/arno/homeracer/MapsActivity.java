@@ -88,6 +88,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     TextView tvCounter;
     Marker destMarker;
 
+    LatLng startLtLn, endLtLn;
+
     private Racer racer;
 
     boolean isRacing;
@@ -125,6 +127,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         isFinished = false;
 
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
+        endLtLn = usr.getEndLtLn();
+        startLtLn = usr.getStartLtLn();
+
+        racer = new Racer(startLtLn);
 
         tvCounter = findViewById(R.id.tvCounter);
         btnStartRace = findViewById(R.id.btnStartMap);
@@ -147,26 +153,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
         UserData usr = getIntent().getParcelableExtra("DataToMaps");
         Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
 
-        final LatLng startLtLn, endLtLn;
+        requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
 
         Double latitude = 0.0;
         Double longitude = 0.0;
 
-        if (sortRace) {
-            startLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
-            endLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
-            racer = new Racer(startLtLn);
-        }else{
-            endLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
-            startLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
-            racer = new Racer(startLtLn);
-        }
-        racer.Draw(mMap, getApplicationContext());
-
+        //Settings();
+        racer.Draw(mMap, this);
 
         mMap.addMarker(new MarkerOptions()
                 .position(startLtLn)
@@ -203,7 +199,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(center1, 13));
 
-                    racer.Move(endLtLn, racer.marker,30000);
                 }
 
                 if(isCounting && destMarker != null){
@@ -326,6 +321,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         StartTime = SystemClock.uptimeMillis();
         handler.postDelayed(runnable, 0);
 
+        racer.Move(endLtLn, racer.marker,30000);
     }
 
     public void PauzeCounter(){
@@ -421,5 +417,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         editor.putString("Score", String.valueOf(jsonArrayProduct));
         editor.commit();
     }
+
+/*    public LatLng[] Settings(){
+        UserData usr = getIntent().getParcelableExtra("DataToMaps");
+        Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
+
+        if (sortRace) {
+            startLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
+            endLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
+            racer = new Racer(startLtLn);
+        }else{
+            endLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
+            startLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
+            racer = new Racer(startLtLn);
+        }
+    }*/
 }
 

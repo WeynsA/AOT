@@ -14,6 +14,7 @@ public class Homescreen extends AppCompatActivity {
     TextView startLong, startLat, userId, userNameTv, endLong, endLat, tvStartStreet, tvEndStreet, tvYourScore;
     Button btnRace1, btnRace2, btnHighScore;
     JsonObjectRequest jsonObjectRequest;
+    Boolean toHome;
     public static Intent i;
 
     @Override
@@ -52,6 +53,9 @@ public class Homescreen extends AppCompatActivity {
         tvStartStreet.setText(_startStreet);
         tvEndStreet.setText(_endStreet);
 
+        toHome = false;
+        usr.setRace(toHome);
+
         i = new Intent(Homescreen.this, MapsActivity.class);
         i.putExtra("DataToMaps", usr);
 
@@ -63,7 +67,6 @@ public class Homescreen extends AppCompatActivity {
     private View.OnClickListener StartRace1 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            i.putExtra("SortRace", true);
             i.putExtra("Finished", false);
             startActivity(i);
         }
@@ -72,7 +75,8 @@ public class Homescreen extends AppCompatActivity {
     private View.OnClickListener StartRace2 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            i.putExtra("SortRace", false);
+            final UserData usr = getIntent().getParcelableExtra("userToHome");
+            usr.setRace(true);
             i.putExtra("Finished", false);
             startActivity(i);
         }
