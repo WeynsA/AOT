@@ -135,6 +135,7 @@ public class Login extends AppCompatActivity {
                             usr.setEndLong(response.getDouble("endLong"));
                             usr.setStartStreetName(response.getString("startStreetname"));
                             usr.setEndStreetName(response.getString("endStreetname"));
+                            usr.setRace(false);
 
                             Intent intent = new Intent(Login.this, Homescreen.class);
                             intent.putExtra("userToHome", usr);

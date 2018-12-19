@@ -33,7 +33,6 @@ public class Homescreen extends AppCompatActivity {
         tvEndStreet = findViewById(R.id.tvEndStreet);
         tvStartStreet = findViewById(R.id.tvStartStreet);
 
-
         Intent intent = getIntent();
         final UserData usr = intent.getParcelableExtra("userToHome");
         int _id = usr.getUserId();

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -87,7 +88,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Boolean isCounting;
     TextView tvCounter;
     Marker destMarker;
-
     LatLng startLtLn, endLtLn;
 
     private Racer racer;
@@ -95,18 +95,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     boolean isRacing;
     boolean isFinished;
 
-
-
     int Seconds, Minutes, MilliSeconds;
     long MilliSecondTime, StartTime, TimeBuff, UpdateTime = 0L;
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -153,13 +146,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        UserData usr = getIntent().getParcelableExtra("DataToMaps");
-        Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
-
         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
-
-        Double latitude = 0.0;
-        Double longitude = 0.0;
 
         //Settings();
         racer.Draw(mMap, this);
@@ -172,7 +159,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addMarker(new MarkerOptions()
                 .position(endLtLn)
                 .title("Finish!")
-                .draggable(true));
+                .draggable(true)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.finish)));
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 

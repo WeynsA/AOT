@@ -20,7 +20,6 @@ public class UserData implements Parcelable {
     private Boolean toHome;
 
     public UserData(){
-        toHome = false;
     }
     public void setUserId(int _userId) {
         this.UserId = _userId;
@@ -48,7 +47,7 @@ public class UserData implements Parcelable {
     }
 
     public void setRace(Boolean home) {
-        toHome = home;
+        this.toHome = home;
     }
 
     public Boolean getRace() {
