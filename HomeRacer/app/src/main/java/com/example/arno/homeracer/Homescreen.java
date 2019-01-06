@@ -34,7 +34,7 @@ public class Homescreen extends AppCompatActivity {
         tvStartStreet = findViewById(R.id.tvStartStreet);
 
         Intent intent = getIntent();
-        final UserData usr = intent.getParcelableExtra("userToHome");
+        final UserData usr = intent.getParcelableExtra("userData");
         int _id = usr.getUserId();
         String _username = usr.getUsername();
         Double _startLat = usr.getStartLat();
@@ -56,7 +56,7 @@ public class Homescreen extends AppCompatActivity {
         usr.setRace(toHome);
 
         i = new Intent(Homescreen.this, MapsActivity.class);
-        i.putExtra("DataToMaps", usr);
+        i.putExtra("userData", usr);
 
         btnRace1.setOnClickListener(StartRace1);
         btnRace2.setOnClickListener(StartRace2);
@@ -74,7 +74,7 @@ public class Homescreen extends AppCompatActivity {
     private View.OnClickListener StartRace2 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            final UserData usr = getIntent().getParcelableExtra("userToHome");
+            final UserData usr = getIntent().getParcelableExtra("userData");
             usr.setRace(true);
             i.putExtra("Finished", false);
             startActivity(i);

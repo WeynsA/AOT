@@ -1,7 +1,20 @@
 package com.example.arno.homeracer;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,10 +24,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HighscoreManager  {
     // An arraylist of the type "score" we will use to work with the scores inside the class
     private ArrayList<Score> scores=null;
+    static String resultPost;
+    static String stringy;
 
 
     public void setScores(ArrayList<Score> scores) {
@@ -126,5 +143,55 @@ public class HighscoreManager  {
         this.inputStream = in.readParcelable(ObjectInputStream.class.getClassLoader());
     }
 
+    static String postTime(final Long time, final String username, Context context){
+        RequestQueue queue = Volley.newRequestQueue(context);
 
+        String url = "https://aothomeracer.azurewebsites.net/api/score/";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("RaceName", username);
+        params.put("TimeScore", time.toString());
+        JSONObject jsonObj = new JSONObject(params);
+
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d("response", response.toString());;
+                String tekst = response.toString();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+            }
+        });
+        Volley.newRequestQueue(context).add(jsonObjReq);
+
+        return resultPost;
+    }
+
+    static void GetHighscore(final String raceName, final Context context, final ServerCallback callback){
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url ="https://aothomeracer.azurewebsites.net/api/score/" + raceName;
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        Log.d("volleyGetHighscore", "onResponse: " + response);
+                        stringy = new String(response);
+                        callback.onSuccess();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("volleyGetHighscore", "onResponse: " + error.toString());
+                resultPost = error.toString();
+            }
+        });
+        Volley.newRequestQueue(context).add(stringRequest);
+    }
+
+    static public String getString(){
+        return stringy;
+    }
 }

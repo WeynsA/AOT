@@ -120,7 +120,7 @@ public class Login extends AppCompatActivity {
     public void GetUserData(){
         EditText etUserName = findViewById(R.id.etUser);
 
-        String url = "https://worldapi2.azurewebsites.net/api/homeracer/user/"+etUserName.getText();
+        String url = "https://aothomeracer.azurewebsites.net/api/user/"+etUserName.getText();
         final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -138,7 +138,7 @@ public class Login extends AppCompatActivity {
                             usr.setRace(false);
 
                             Intent intent = new Intent(Login.this, Homescreen.class);
-                            intent.putExtra("userToHome", usr);
+                            intent.putExtra("userData", usr);
                             SwapLayout();
                             startActivity(intent);
                         } catch (JSONException e) {
@@ -167,4 +167,8 @@ public class Login extends AppCompatActivity {
         //mRequestQueue.add(jsonObjectRequest);
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
+
+
+
+
 }

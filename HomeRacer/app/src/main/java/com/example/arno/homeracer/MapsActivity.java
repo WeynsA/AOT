@@ -72,6 +72,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation;
 
+    UserData usr = new UserData();
+
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
@@ -119,7 +121,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         isRacing = false;
         isFinished = false;
 
-        UserData usr = getIntent().getParcelableExtra("DataToMaps");
+        usr = getIntent().getParcelableExtra("userData");
         endLtLn = usr.getEndLtLn();
         startLtLn = usr.getStartLtLn();
 
@@ -199,10 +201,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Log.d(TAG, "onLocationChanged: " + markerLoc);
                     Log.d("distancevalue", String.valueOf(distance));
 
-                    if(distance<100 && !isFinished){
+                    if(distance<5000 && !isFinished){
                         isFinished = true;
                         Toast.makeText(getApplicationContext(),"You have arrived at your destination",Toast.LENGTH_LONG).show();
+                        HighscoreManager.postTime(UpdateTime, usr.getUsername(), MapsActivity.this);
                         Intent i = new Intent(MapsActivity.this, HighScoreActivity.class);
+                        i.putExtra("userData", usr);
                         i.putExtra("YourTime",UpdateTime);
                         StopCounter();
                         startActivity(i);
@@ -355,7 +359,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void HighscoreAdd(Long timeScore ){
-        UserData usr = getIntent().getParcelableExtra("DataToMaps");
+        UserData usr = getIntent().getParcelableExtra("userData");
         Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
 
         Log.d(TAG, "HighscoreAdd: ADDEDED");
@@ -407,7 +411,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 /*    public LatLng[] Settings(){
-        UserData usr = getIntent().getParcelableExtra("DataToMaps");
+        UserData usr = getIntent().getParcelableExtra("userData");
         Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
 
         if (sortRace) {

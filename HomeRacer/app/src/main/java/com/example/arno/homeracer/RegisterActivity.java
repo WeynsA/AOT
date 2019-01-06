@@ -149,7 +149,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void PostRequest() {
-        String url = "https://worldapi2.azurewebsites.net/api/homeracer/user";
+        String url = "https://aothomeracer.azurewebsites.net/api/user";
 
         Username =  String.valueOf(etRUsername.getText());
         Street1 =  String.valueOf(etStreet1.getText());

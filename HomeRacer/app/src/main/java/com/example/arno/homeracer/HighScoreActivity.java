@@ -10,6 +10,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.StringRequest;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -17,11 +21,16 @@ import java.util.List;
 public class HighScoreActivity extends AppCompatActivity {
     TextView tvHighscore, tvTijden, tvRoutes, tvYourScore;
     Button btnClear;
+    HighscoreManager highscoreManager = new HighscoreManager();
+    List<String> myHighsScore;
+    UserData usr = new UserData();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_high_score);
+
+        usr = getIntent().getParcelableExtra("userData");
 
         tvHighscore = findViewById(R.id.tvHighScore);
         tvRoutes = findViewById(R.id.tvRoutes);
@@ -40,8 +49,7 @@ public class HighScoreActivity extends AppCompatActivity {
 
         btnClear.setOnClickListener(ClearHighScore);
 
-
-        MapsActivity mapsActivity = new MapsActivity();
+        /*MapsActivity mapsActivity = new MapsActivity();
         List<Score> list = mapsActivity.getDataFromSharedPreferences( HighScoreActivity.this);
 
         Collections.sort(list, new Comparator<Score>() {
@@ -58,8 +66,28 @@ public class HighScoreActivity extends AppCompatActivity {
                 //Log.d("PLZWORK", "HighscoreAdd" + i + " : " + "username: " + _scores.getUsernameHS() + " time: " + _scores.getTime());
                 tvRoutes.setText(tvRoutes.getText() + userAdd + "\n");
                 tvTijden.setText(tvTijden.getText() + tijdAdd + "\n");
+            }*/
+        String highscore;
+        HighscoreManager.GetHighscore(usr.getUsername(), HighScoreActivity.this, new ServerCallback() {
+            @Override
+            public void onSuccess() {
+               myHighsScore = new ArrayList<String>(Arrays.asList(HighscoreManager.getString().split(",")));
+                int i = 0;
+                myHighsScore.remove(0);
+                myHighsScore.remove(myHighsScore.size()-1);
+                for (String item : myHighsScore) {
+                    i++;
+                    float time = Float.parseFloat(item)/1000;
+                    String index = String.valueOf(i);
+                    String tijdAdd = String.format("%.2f",time);
+                    //Log.d("PLZWORK", "HighscoreAdd" + i + " : " + "username: " + _scores.getUsernameHS() + " time: " + _scores.getTime());
+
+                    tvTijden.append(index + ". " + tijdAdd + "\n");
+                }
             }
+        });
     }
+
     private View.OnClickListener ClearHighScore = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
