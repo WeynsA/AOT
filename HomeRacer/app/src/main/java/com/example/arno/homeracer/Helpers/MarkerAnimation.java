@@ -1,20 +1,17 @@
-package com.example.arno.homeracer;
+package com.example.arno.homeracer.Helpers;
 
-import com.example.arno.homeracer.LatLngInterpolator;
+import com.example.arno.homeracer.Helpers.LatLngInterpolator;
 
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-
-import static com.facebook.FacebookSdk.getApplicationContext;
 
 public class MarkerAnimation {
     public MarkerAnimation (Context context){

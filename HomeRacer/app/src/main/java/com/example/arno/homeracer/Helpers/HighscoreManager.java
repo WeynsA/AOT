@@ -1,10 +1,8 @@
-package com.example.arno.homeracer;
+package com.example.arno.homeracer.Helpers;
 
 import android.content.Context;
 import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -13,6 +11,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.arno.homeracer.Objects.Score;
 
 import org.json.JSONObject;
 
@@ -143,10 +142,11 @@ public class HighscoreManager  {
         this.inputStream = in.readParcelable(ObjectInputStream.class.getClassLoader());
     }
 
-    static String postTime(final Long time, final String username, Context context){
-        RequestQueue queue = Volley.newRequestQueue(context);
+    //VANAF HIER IS ALLES IN GEBRUIK
 
+    static public void postTime(final Long time, final String username, Context context){
         String url = "https://aothomeracer.azurewebsites.net/api/score/";
+
         Map<String, String> params = new HashMap<String, String>();
         params.put("RaceName", username);
         params.put("TimeScore", time.toString());
@@ -156,19 +156,19 @@ public class HighscoreManager  {
             @Override
             public void onResponse(JSONObject response) {
                 Log.d("response", response.toString());;
-                String tekst = response.toString();
+                Log.d("HIGHSCOREADD", "HIGHSCORE");;
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Log.d("HIGHSCOREADD", "HIGHSCORE");;
+
             }
         });
         Volley.newRequestQueue(context).add(jsonObjReq);
-
-        return resultPost;
     }
 
-    static void GetHighscore(final String raceName, final Context context, final ServerCallback callback){
+    static public void GetHighscore(final String raceName, final Context context, final ServerCallback callback){
         RequestQueue queue = Volley.newRequestQueue(context);
         String url ="https://aothomeracer.azurewebsites.net/api/score/" + raceName;
 

@@ -1,4 +1,4 @@
-package com.example.arno.homeracer;
+package com.example.arno.homeracer.Objects;
 
 import java.io.Serializable;
 

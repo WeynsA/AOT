@@ -7,11 +7,10 @@
 
     <ScrollView
         android:id="@+id/login_form"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:layout_marginTop="4dp"
+        android:layout_width="225dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView">
 
@@ -46,14 +45,13 @@
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:hint="Password"
+                    android:hint="Your name"
                     android:imeActionId="6"
                     android:imeOptions="actionUnspecified"
                     android:importantForAutofill="no"
-                    android:inputType="textPassword"
+                    android:inputType="text"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:visibility="gone"
                     tools:targetApi="o" />
 
             </android.support.design.widget.TextInputLayout>
@@ -81,7 +79,8 @@
         android:background="@drawable/starticontrans"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"/>
 
     <ProgressBar
         android:id="@+id/spinner"
@@ -98,9 +97,9 @@
         android:id="@+id/tvRegister"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:text="Not registered yet? Click here!"
+        android:layout_marginEnd="76dp"
+        android:layout_marginRight="76dp"
+        android:text="Want to make a race? Click here!"
         android:textAppearance="@style/TextAppearance.AppCompat.Widget.Button"
         android:textSize="12sp"
         android:textStyle="italic"

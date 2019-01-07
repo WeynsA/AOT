@@ -68,8 +68,29 @@ namespace AppOTYearASP.Controllers
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public void Delete(string id)
         {
+            {
+                foreach (var item in db.Scores)
+                {
+                    if (item.RaceName == id)
+                        db.Scores.Remove(item);
+                }
+                var firstScore = new Score
+                {
+                    TimeScore = 0,
+                    RaceName = id
+                };
+                var lastScore = new Score
+                {
+                    TimeScore = 999999999,
+                    RaceName = id
+                };
+
+                db.Scores.Add(firstScore);
+                db.Scores.Add(lastScore);
+                db.SaveChanges();
+            }
         }
 
         public bool checkIfHighScored(long value, string raceName)

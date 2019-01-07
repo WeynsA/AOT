@@ -5,44 +5,39 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.Image;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.os.SystemClock;
 
 
-import com.facebook.places.Places;
+import com.example.arno.homeracer.Helpers.HighscoreManager;
+import com.example.arno.homeracer.Helpers.ServerCallback;
+import com.example.arno.homeracer.Objects.Race;
+import com.example.arno.homeracer.Objects.Racer;
+import com.example.arno.homeracer.Objects.Score;
+import com.example.arno.homeracer.Objects.UserData;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -51,16 +46,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -73,6 +61,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mLastKnownLocation;
 
     UserData usr = new UserData();
+    Race race = new Race();
+    List<com.example.arno.homeracer.Objects.Location> raceLocations;
+    int index;
+    int finishIndex;
 
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
@@ -90,7 +82,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Boolean isCounting;
     TextView tvCounter;
     Marker destMarker;
-    LatLng startLtLn, endLtLn;
+    LatLng startLtLn, endLtLn, finishLtLn;
 
     private Racer racer;
 
@@ -109,6 +101,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        index = 0;
+
         if (savedInstanceState != null) {
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
@@ -120,12 +114,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         isCounting = false;
         isRacing = false;
         isFinished = false;
+        try {
+            usr = getIntent().getParcelableExtra("userData");
+            endLtLn = usr.getEndLtLn();
+            startLtLn = usr.getStartLtLn();
+        }catch (ClassCastException ex){
+            race = getIntent().getParcelableExtra("userData");
+            /*for (com.example.arno.homeracer.Objects.Location item : race.getLocations()) {
+                raceLocations.addAll()Add(item);
+            }*/
+            raceLocations = race.getLocations();
+            finishIndex = raceLocations.size() - 1;
+            finishLtLn = raceLocations.get(finishIndex).getLocationLtLn();
+            startLtLn = NextLocation();
+            endLtLn = NextLocation();
+        }
 
-        usr = getIntent().getParcelableExtra("userData");
-        endLtLn = usr.getEndLtLn();
-        startLtLn = usr.getStartLtLn();
-
-        racer = new Racer(startLtLn);
+        //racer = new Racer(startLtLn);
 
         tvCounter = findViewById(R.id.tvCounter);
         btnStartRace = findViewById(R.id.btnStartMap);
@@ -151,7 +156,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
 
         //Settings();
-        racer.Draw(mMap, this);
+
+        //racer.Draw(mMap, this);
 
         mMap.addMarker(new MarkerOptions()
                 .position(startLtLn)
@@ -160,6 +166,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.addMarker(new MarkerOptions()
                 .position(endLtLn)
+                .draggable(true));
+
+        mMap.addMarker(new MarkerOptions()
+                .position(finishLtLn)
                 .title("Finish!")
                 .draggable(true)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.finish)));
@@ -170,12 +180,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mMap.setMyLocationEnabled(true);
 
-        final LocationManager locationManager= (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
+        final LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         final LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                LatLng center1 = new LatLng(location.getLatitude(),location.getLongitude());
+                LatLng center1 = new LatLng(location.getLatitude(), location.getLongitude());
                 requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
 
                 // Prompt the user for permission.
@@ -191,7 +201,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 }
 
-                if(isCounting && destMarker != null){
+                if (isCounting && destMarker != null) {
                     Location markerLoc = new Location("Destination");
                     markerLoc.setLatitude(destMarker.getPosition().latitude);
                     //markerLoc.setLatitude(endLtLn.latitude);
@@ -201,24 +211,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Log.d(TAG, "onLocationChanged: " + markerLoc);
                     Log.d("distancevalue", String.valueOf(distance));
 
-                    if(distance<5000 && !isFinished){
+                    /*
+
+                    }*/
+                    if (distance < 5000 && index != finishIndex){
+                        mMap.addMarker(new MarkerOptions()
+                                .draggable(true)
+                                .position(NextLocation())
+                                .title(String.valueOf(index)));
+                    }
+                    else if (distance < 5000 && index == finishIndex) {
                         isFinished = true;
-                        Toast.makeText(getApplicationContext(),"You have arrived at your destination",Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "You have arrived at your destination", Toast.LENGTH_LONG).show();
+
                         HighscoreManager.postTime(UpdateTime, usr.getUsername(), MapsActivity.this);
                         Intent i = new Intent(MapsActivity.this, HighScoreActivity.class);
-                        i.putExtra("userData", usr);
-                        i.putExtra("YourTime",UpdateTime);
+                        //i.putExtra("userData", usr);
+                        i.putExtra("YourTime", Float.valueOf(UpdateTime));
+                        i.putExtra("playerName", getIntent().getStringExtra("playerName"));
                         StopCounter();
                         startActivity(i);
                         finish();
                     }
-                    if(distance>100)
-                    {
-                        Toast.makeText(getApplicationContext(), "not at destination", Toast.LENGTH_LONG).show();
-                        Log.d("toast","locations are not the same" + distance);
+                    else{
+                        //Toast.makeText(getApplicationContext(), "not at destination", Toast.LENGTH_LONG).show();
+                        Log.d("toast", "locations are not the same" + distance);
 
-                    }}
+                    }
+                }
             }
+
             @Override
             public void onStatusChanged(String s, int i, Bundle bundle) {
 
@@ -234,7 +256,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         };
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,locationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
@@ -266,6 +288,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             );
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -285,12 +308,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         public void onClick(View v) {
 
-            if (!isCounting){
+            if (!isCounting) {
                 isCounting = true;
                 StartCounter();
                 btnStartRace.setText("Pauze");
                 btnStopRace.setVisibility(View.VISIBLE);
-            }else{
+            } else {
                 isCounting = false;
                 PauzeCounter();
                 btnStartRace.setText("Start");
@@ -306,31 +329,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             btnStartRace.setText("Start");
             isCounting = false;
             StopCounter();
-            }
+        }
     };
 
-    public void StartCounter(){
+    public void StartCounter() {
         StartTime = SystemClock.uptimeMillis();
         handler.postDelayed(runnable, 0);
 
-        racer.Move(endLtLn, racer.marker,30000);
+        //racer.Move(endLtLn, racer.marker, 30000);
     }
 
-    public void PauzeCounter(){
+    public void PauzeCounter() {
         TimeBuff += MilliSecondTime;
 
         handler.removeCallbacks(runnable);
     }
 
-    public void StopCounter(){
-        HighscoreAdd(UpdateTime);
-        MilliSecondTime = 0L ;
-        StartTime = 0L ;
-        TimeBuff = 0L ;
-        UpdateTime = 0L ;
-        Seconds = 0 ;
-        Minutes = 0 ;
-        MilliSeconds = 0 ;
+    public void StopCounter() {
+        MilliSecondTime = 0L;
+        StartTime = 0L;
+        TimeBuff = 0L;
+        UpdateTime = 0L;
+        Seconds = 0;
+        Minutes = 0;
+        MilliSeconds = 0;
 
         tvCounter.setText("00:00:00");
     }
@@ -355,74 +377,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    ArrayList<Score> HighScore = new ArrayList<Score>();
-
-
-    public void HighscoreAdd(Long timeScore ){
-        UserData usr = getIntent().getParcelableExtra("userData");
-        Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
-
-        Log.d(TAG, "HighscoreAdd: ADDEDED");
-        Score user = new Score(usr.getUsername(), timeScore, sortRace);
-
-        HighScore.add(user);
-        addInJSONArray(user);
-
-        int i = 0;
-        for (Score _score:HighScore){
-            i++;
-            Log.d(TAG, "HighscoreAdd"+i+" : " + "username: " +usr.getUsername()+" time: "+ _score.getTime());
-        }
+    public LatLng NextLocation(){
+        LatLng _loc = raceLocations.get(index).getLocationLtLn();
+        index++;
+        return _loc;
     }
-    public List<Score> getDataFromSharedPreferences(Context context){
-        Gson gson = new Gson();
-        List<Score> productFromShared = new ArrayList<>();
-        SharedPreferences sharedPref = context.getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
-        String jsonPreferences = sharedPref.getString("Score", "");
-
-        Type type = new TypeToken<List<Score>>() {}.getType();
-        productFromShared = gson.fromJson(jsonPreferences, type);
-
-        return productFromShared;
-    }
-    private void addInJSONArray(Score productToAdd){
-
-        Gson gson = new Gson();
-        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
-
-        String jsonSaved = sharedPref.getString("Score", "");
-        String jsonNewproductToAdd = gson.toJson(productToAdd);
-
-        JSONArray jsonArrayProduct= new JSONArray();
-
-        try {
-            if(jsonSaved.length()!=0){
-                jsonArrayProduct = new JSONArray(jsonSaved);
-            }
-            jsonArrayProduct.put(new JSONObject(jsonNewproductToAdd));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        //SAVE NEW ARRAY
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("Score", String.valueOf(jsonArrayProduct));
-        editor.commit();
-    }
-
-/*    public LatLng[] Settings(){
-        UserData usr = getIntent().getParcelableExtra("userData");
-        Boolean sortRace = getIntent().getBooleanExtra("SortRace", false);
-
-        if (sortRace) {
-            startLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
-            endLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
-            racer = new Racer(startLtLn);
-        }else{
-            endLtLn = new LatLng(usr.getStartLat(), usr.getStartLong());
-            startLtLn = new LatLng(usr.getEndLat(), usr.getEndLong());
-            racer = new Racer(startLtLn);
-        }
-    }*/
 }
 

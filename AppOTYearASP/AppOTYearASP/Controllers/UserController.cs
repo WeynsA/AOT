@@ -15,9 +15,9 @@ namespace AppOTYearASP.Controllers
     {
         private readonly WorldContext db;
 
-        public UserController(WorldContext db)
+        public UserController(WorldContext _db)
         {
-            this.db = db;
+            this.db = _db;
         }
 
         // GET api/values
@@ -25,18 +25,20 @@ namespace AppOTYearASP.Controllers
         public IEnumerable<User> GetAll()
         {
             return db.Users;
-                
+
         }
 
         [HttpGet("{userName}")]
         public ActionResult<User> GetUser(string username)
-        {
+        {            
             var user = db.Users.SingleOrDefault(x => x.UserName == username);
             if (user == null)
-                return NotFound();
-            return user;
+                return null;
+            else
+                return user;
 
         }
+
 
         [HttpPost]
         public IActionResult CreateUser([FromBody] User newUser)
@@ -46,5 +48,15 @@ namespace AppOTYearASP.Controllers
 
             return Created("", newUser);
         }
+       /* [Route("login")]
+        [HttpGet("{value}")]
+        public JsonResult Login(string value)
+        {
+            if (GetUser(value) != null)
+                return Json(GetUser(value));
+            else if (raceController.Get(value) != null)
+                return Json(raceController.Get(value));
+            else return null;            
+        }*/
     }
 }

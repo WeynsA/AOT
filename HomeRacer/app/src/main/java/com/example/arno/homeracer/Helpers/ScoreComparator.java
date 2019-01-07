@@ -1,4 +1,6 @@
-package com.example.arno.homeracer;
+package com.example.arno.homeracer.Helpers;
+
+import com.example.arno.homeracer.Objects.Score;
 
 import java.util.Comparator;
 

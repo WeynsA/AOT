@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 
 namespace AppOTYearASP.Models
 {
-    public class Score
+    public class Race
     {
-        public int ScoreId { get; set; }
-
+        public int RaceId { get; set; }
         public string RaceName { get; set; }
-        public int TimeScore { get; set; }
+        public ICollection<Location> Locations { get; set; }
     }
 }

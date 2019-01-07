@@ -43,6 +43,71 @@ namespace AppOTYearASP.Data
                 context.Users.Add(user0);
                 context.Users.Add(user1);
                 context.SaveChanges();
+
+                var race1 = new Race()
+                {
+                    RaceName = "ArnoLoop",                    
+                };
+                context.Races.Add(race1);
+                context.SaveChanges();
+
+                var location1 = new Location()
+                {
+                    LocName = "Brabo",
+                    LocLat = 51.221228,
+                    LocLong = 4.399698,
+                    RaceIdFK = 1
+                };
+                var location2 = new Location()
+                {
+                    LocName = "Standbeeld Stadhuis",
+                    LocLat = 51.220884,
+                    LocLong = 4.398995,
+                    RaceIdFK = 1
+
+                };
+                var location3 = new Location()
+                {
+                    LocName = "Het Steen",
+                    LocLat = 51.222773,
+                    LocLong = 4.397367,
+                    RaceIdFK = 1
+
+                };
+                var location4 = new Location()
+                {
+                    LocName = "Pieter Paul Rubens",
+                    LocLat = 51.219326,
+                    LocLong = 4.401576,
+                    RaceIdFK = 1
+
+
+                };
+                var location5 = new Location()
+                {
+                    LocName = "MAS",
+                    LocLat = 51.228989,
+                    LocLong = 4.40816,
+                    RaceIdFK = 1
+
+
+                };
+                var location6 = new Location()
+                {
+                    LocName = "Stadswaag",
+                    LocLat = 51.223877,
+                    LocLong = 4.407136,
+                    RaceIdFK = 1
+
+                };
+
+                context.Locations.Add(location1);
+                context.Locations.Add(location2);
+                context.Locations.Add(location3);
+                context.Locations.Add(location4);
+                context.Locations.Add(location5);
+                context.Locations.Add(location6);
+                context.SaveChanges();
             }
         }
     }

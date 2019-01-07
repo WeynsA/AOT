@@ -1,24 +1,17 @@
-package com.example.arno.homeracer;
+package com.example.arno.homeracer.Objects;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
-import android.os.SystemClock;
-import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
-import com.example.arno.homeracer.LatLngInterpolator;
+import com.example.arno.homeracer.Helpers.LatLngInterpolator;
+import com.example.arno.homeracer.Helpers.MarkerAnimation;
+import com.example.arno.homeracer.R;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class Racer {

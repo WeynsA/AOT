@@ -1,10 +1,6 @@
 package com.example.arno.homeracer;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,22 +12,26 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.example.arno.homeracer.Objects.Location;
+import com.example.arno.homeracer.Objects.Race;
+import com.example.arno.homeracer.Objects.Score;
+import com.example.arno.homeracer.Objects.UserData;
+import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -44,6 +44,7 @@ public class Login extends AppCompatActivity {
     public ProgressBar spinner;
 
     UserData usr = new UserData();
+    Race race = new Race();
 
     private RequestQueue mRequestQueue;
     private StringRequest stringRequest;
@@ -60,20 +61,6 @@ public class Login extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
-            MapsActivity mapsActivity = new MapsActivity();
-            List<Score> list = mapsActivity.getDataFromSharedPreferences( Login.this);
-
-            Collections.sort(list, new Comparator<Score>() {
-                public int compare (Score s1, Score s2){
-                    return Long.compare(s1.getTime(), s2.getTime());
-                }
-            });
-
-            int i = 0;
-            for (Score _scores:list){
-                i++;
-                Log.d("PLZWORK", "HighscoreAdd"+i+" : " + "username: " +usr.getUsername()+" time: "+ _scores.getTime());
-            }
         }
     };
 
@@ -118,14 +105,15 @@ public class Login extends AppCompatActivity {
     }
 
     public void GetUserData(){
-        EditText etUserName = findViewById(R.id.etUser);
+        final EditText etUserName = findViewById(R.id.etUser);
 
         String url = "https://aothomeracer.azurewebsites.net/api/user/"+etUserName.getText();
-        final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d("tag", "jsonresponse" + response.toString());
+
                         try {
                             usr.setUserId(response.getInt("userId"));
                             usr.setUsername(response.getString("userName"));
@@ -150,12 +138,13 @@ public class Login extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.d("error", error.toString());
-                        if(error instanceof TimeoutError)
-                        {
+                        NetworkResponse networkResponse;
+                        if(error instanceof TimeoutError) {
                             Toast toast = Toast.makeText(getApplicationContext(), "Request time out, try again!", Toast.LENGTH_LONG);
                             toast.show();
+                        } else if (error.networkResponse == null){
+                            GetTourData(etUserName.getText().toString());
                         }
-                        SwapLayout();
                     }
                 }
         );
@@ -168,7 +157,55 @@ public class Login extends AppCompatActivity {
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 
+    public void GetTourData(String url){
+        String urlTour =  "https://aothomeracer.azurewebsites.net/api/race/"+ url;
+        JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(Request.Method.GET, urlTour, null,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        Log.d("tag", "jsonresponse" + response.toString());
+                        try {
+                            JSONObject jsonRace = response.getJSONObject(0);
+                           race.setRaceId(jsonRace.getInt("raceId"));
+                           race.setRaceName(jsonRace.getString("raceName"));
 
+                           JSONArray locArray = jsonRace.getJSONArray("locations");
+                            for (int i = 0; i < locArray.length(); i++) {
+                                JSONObject location = (JSONObject) locArray.get(i);
 
+                                Location locFromServer = new Location();
+                                locFromServer.setLocId(location.getInt("locId"));
+                                locFromServer.setLocLat(location.getDouble("locLat"));
+                                locFromServer.setLocLong(location.getDouble("locLong"));
 
+                                race.setLocations(locFromServer);
+                            }
+
+                            Intent intent = new Intent(Login.this, Homescreen.class);
+                            intent.putExtra("userData", race);
+                            intent.putExtra("playerName", etPassword.getText().toString());
+                            SwapLayout();
+                            startActivity(intent);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("error", error.toString());
+                        if(error instanceof TimeoutError)
+                        {
+                            Toast toast = Toast.makeText(getApplicationContext(), "Request time out, try again!", Toast.LENGTH_LONG);
+                            toast.show();
+                        }else if (error.networkResponse == null){
+                            Toast.makeText(Login.this, "Name does not exist.", Toast.LENGTH_SHORT).show();
+                        }
+                        SwapLayout();
+                    }
+                }
+        );
+        Volley.newRequestQueue(this).add(jsonObjectRequest);
+    }
 }

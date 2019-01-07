@@ -1,16 +1,9 @@
-package com.example.arno.homeracer;
+package com.example.arno.homeracer.Objects;
 
-import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Size;
 
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.maps.model.LatLng;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UserData implements Parcelable {
     private int UserId;

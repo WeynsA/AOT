@@ -7,8 +7,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.arno.homeracer.Objects.Race;
+import com.example.arno.homeracer.Objects.UserData;
 
 public class Homescreen extends AppCompatActivity {
     TextView startLong, startLat, userId, userNameTv, endLong, endLat, tvStartStreet, tvEndStreet, tvYourScore;
@@ -34,29 +35,39 @@ public class Homescreen extends AppCompatActivity {
         tvStartStreet = findViewById(R.id.tvStartStreet);
 
         Intent intent = getIntent();
-        final UserData usr = intent.getParcelableExtra("userData");
-        int _id = usr.getUserId();
-        String _username = usr.getUsername();
-        Double _startLat = usr.getStartLat();
-        Double _startLong = usr.getStartLong();
-        Double _endLat = usr.getEndLat();
-        Double _endLong = usr.getEndLong();
-        String _startStreet = usr.getStartStreetName();
-        String _endStreet = usr.getEndStreetName();
+        try {
+            final UserData race = intent.getParcelableExtra("userData");
+            int _id = race.getUserId();
+            String _username = race.getUsername();
+            Double _startLat = race.getStartLat();
+            Double _startLong = race.getStartLong();
+            Double _endLat = race.getEndLat();
+            Double _endLong = race.getEndLong();
+            String _startStreet = race.getStartStreetName();
+            String _endStreet = race.getEndStreetName();
 
-        userNameTv.setText("Welcome " + _username + "!");
-        startLat.setText("StartLat: " + _startLat);
-        startLong.setText("StartLong: " + _startLong);
-        endLat.setText("EndLat: " + _endLat);
-        endLong.setText("EndLong: " + _endLong);
-        tvStartStreet.setText(_startStreet);
-        tvEndStreet.setText(_endStreet);
+            userNameTv.setText("Welcome " + _username + "!");
+            startLat.setText("StartLat: " + _startLat);
+            startLong.setText("StartLong: " + _startLong);
+            endLat.setText("EndLat: " + _endLat);
+            endLong.setText("EndLong: " + _endLong);
+            tvStartStreet.setText(_startStreet);
+            tvEndStreet.setText(_endStreet);
 
-        toHome = false;
-        usr.setRace(toHome);
+            toHome = false;
+            race.setRace(toHome);
 
-        i = new Intent(Homescreen.this, MapsActivity.class);
-        i.putExtra("userData", usr);
+            i = new Intent(Homescreen.this, MapsActivity.class);
+            i.putExtra("userData", race);
+        }catch (ClassCastException ex){
+            final Race race = intent.getParcelableExtra("userData");
+            userNameTv.setText("Your about to start race: " + race.getRaceName() + "!");
+
+            i = new Intent(Homescreen.this, MapsActivity.class);
+            i.putExtra("userData", race);
+            i.putExtra("typeRace", "Tour");
+        }
+        i.putExtra("playerName", getIntent().getStringExtra("playerName"));
 
         btnRace1.setOnClickListener(StartRace1);
         btnRace2.setOnClickListener(StartRace2);

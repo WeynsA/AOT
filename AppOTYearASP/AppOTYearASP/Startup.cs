@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using AppOTYearASP.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace AppOTYearASP
 {
@@ -32,6 +33,10 @@ namespace AppOTYearASP
                     Configuration.GetConnectionString("DefaultConnection")
                 )
             );
+
+            services.AddMvc().AddJsonOptions(options => {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
 
             services.AddMvc();
             services.AddCors();

@@ -9,13 +9,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.android.volley.toolbox.StringRequest;
+import com.example.arno.homeracer.Helpers.HighscoreManager;
+import com.example.arno.homeracer.Helpers.ServerCallback;
+import com.example.arno.homeracer.Objects.Race;
+import com.example.arno.homeracer.Objects.UserData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class HighScoreActivity extends AppCompatActivity {
@@ -24,13 +26,20 @@ public class HighScoreActivity extends AppCompatActivity {
     HighscoreManager highscoreManager = new HighscoreManager();
     List<String> myHighsScore;
     UserData usr = new UserData();
+    Race race = new Race();
+
+    float hours, minutes, seconds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_high_score);
-
-        usr = getIntent().getParcelableExtra("userData");
+        try{
+            usr = getIntent().getParcelableExtra("userData");
+        }catch (ClassCastException ex){
+            race = getIntent().getParcelableExtra("userData");
+        }
+        String playerName = getIntent().getStringExtra("playerName");
 
         tvHighscore = findViewById(R.id.tvHighScore);
         tvRoutes = findViewById(R.id.tvRoutes);
@@ -43,46 +52,49 @@ public class HighScoreActivity extends AppCompatActivity {
         tvRoutes.setMovementMethod(letsgo);
         tvTijden.setMovementMethod(letsgo);
 
-        Long yourTime = getIntent().getLongExtra("YourTime", 0);
-        Log.d("HAHA", "onCreate: " + yourTime);
-        tvYourScore.setText("Your time: " + String.valueOf(yourTime/1000) + " sec");
+        final Float yourTime = (getIntent().getFloatExtra("YourTime", 0)/1000);
+        //Integer yourTimeInt = Integer.parseInt(yourTime.toString());
+        Log.d("TimeInSec", "onCreate: " + yourTime);
+        minutes = yourTime/60;
+        seconds = yourTime;
+
+        //String timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        if (minutes > 1)
+            tvYourScore.append(String.format("%2.0f", minutes) + "min " + String.format("%2.0f", seconds) + "sec." + "\n");
+        else
+            tvYourScore.append(String.format("%2.3f", seconds) + "sec.");
+        //tvYourScore.setText(timeString);
 
         btnClear.setOnClickListener(ClearHighScore);
 
-        /*MapsActivity mapsActivity = new MapsActivity();
-        List<Score> list = mapsActivity.getDataFromSharedPreferences( HighScoreActivity.this);
-
-        Collections.sort(list, new Comparator<Score>() {
-            public int compare (Score s1, Score s2){
-                return Long.compare(s1.getTime(), s2.getTime());
-            }
-        });
-
-            int i = 0;
-            for (Score _scores : list) {
-                i++;
-                String userAdd = i + ". " + _scores.getUsernameHS();
-                String tijdAdd = String.valueOf(_scores.getTime()/1000);
-                //Log.d("PLZWORK", "HighscoreAdd" + i + " : " + "username: " + _scores.getUsernameHS() + " time: " + _scores.getTime());
-                tvRoutes.setText(tvRoutes.getText() + userAdd + "\n");
-                tvTijden.setText(tvTijden.getText() + tijdAdd + "\n");
-            }*/
         String highscore;
-        HighscoreManager.GetHighscore(usr.getUsername(), HighScoreActivity.this, new ServerCallback() {
+        highscoreManager.GetHighscore(race.getRaceName(), HighScoreActivity.this, new ServerCallback() {
             @Override
             public void onSuccess() {
                myHighsScore = new ArrayList<String>(Arrays.asList(HighscoreManager.getString().split(",")));
                 int i = 0;
-                myHighsScore.remove(0);
-                myHighsScore.remove(myHighsScore.size()-1);
-                for (String item : myHighsScore) {
-                    i++;
-                    float time = Float.parseFloat(item)/1000;
-                    String index = String.valueOf(i);
-                    String tijdAdd = String.format("%.2f",time);
-                    //Log.d("PLZWORK", "HighscoreAdd" + i + " : " + "username: " + _scores.getUsernameHS() + " time: " + _scores.getTime());
+                try {
 
-                    tvTijden.append(index + ". " + tijdAdd + "\n");
+                    myHighsScore.remove(0);
+                    myHighsScore.remove(myHighsScore.size()-1);
+
+                    for (String item : myHighsScore) {
+                        i++;
+                        float time = Float.parseFloat(item)/1000;
+
+                        String index = String.valueOf(i);
+                        String tijdAdd = String.format("%.2f",time);
+                        tvTijden.append(index + ". " + tijdAdd + "\n");
+
+                        if (yourTime == time && i==1)
+                            Toast.makeText(HighScoreActivity.this, "You have set a new highscore!", Toast.LENGTH_SHORT).show();
+                        else if (yourTime == time)
+                            tvYourScore.append("Your place: " + String.valueOf(i));
+
+                    }
+                }catch (ArrayIndexOutOfBoundsException ex)
+                {
+                    tvTijden.setText("You're the first one to complete this tour!");
                 }
             }
         });

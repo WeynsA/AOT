@@ -1,4 +1,4 @@
-package com.example.arno.homeracer;
+package com.example.arno.homeracer.Helpers;
 
 import com.google.android.gms.maps.model.LatLng;
 
