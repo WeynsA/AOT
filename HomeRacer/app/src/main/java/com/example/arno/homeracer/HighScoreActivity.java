@@ -2,6 +2,8 @@ package com.example.arno.homeracer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -28,7 +30,7 @@ public class HighScoreActivity extends AppCompatActivity {
     UserData usr = new UserData();
     Race race = new Race();
 
-    float hours, minutes, seconds;
+    String highScoreName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +38,10 @@ public class HighScoreActivity extends AppCompatActivity {
         setContentView(R.layout.activity_high_score);
         try{
             usr = getIntent().getParcelableExtra("userData");
+            highScoreName = usr.getUsername();
         }catch (ClassCastException ex){
             race = getIntent().getParcelableExtra("userData");
+            highScoreName = race.getRaceName();
         }
         String playerName = getIntent().getStringExtra("playerName");
 
@@ -47,50 +51,47 @@ public class HighScoreActivity extends AppCompatActivity {
         btnClear = findViewById(R.id.btnClear);
         tvYourScore = findViewById(R.id.tvYourTime);
 
+        //Making table scrollable
         ScrollingMovementMethod letsgo = new ScrollingMovementMethod();
-
-        tvRoutes.setMovementMethod(letsgo);
         tvTijden.setMovementMethod(letsgo);
 
-        final Float yourTime = (getIntent().getFloatExtra("YourTime", 0)/1000);
-        //Integer yourTimeInt = Integer.parseInt(yourTime.toString());
+        final Float yourTime = (getIntent().getFloatExtra("YourTime", 0));
+        //Displaying the achieved time
         Log.d("TimeInSec", "onCreate: " + yourTime);
-        minutes = yourTime/60;
-        seconds = yourTime;
+        tvYourScore.append(highscoreManager.ConverTime(yourTime));
 
-        //String timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        if (minutes > 1)
-            tvYourScore.append(String.format("%2.0f", minutes) + "min " + String.format("%2.0f", seconds) + "sec." + "\n");
-        else
-            tvYourScore.append(String.format("%2.3f", seconds) + "sec.");
-        //tvYourScore.setText(timeString);
+        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(HighScoreActivity.this, "12")
+                .setSmallIcon(R.drawable.biker_up)
+                .setContentTitle("Highscore!")
+                .setContentText("You have just set a new highscore on HomeRacer!")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         btnClear.setOnClickListener(ClearHighScore);
-
-        String highscore;
-        highscoreManager.GetHighscore(race.getRaceName(), HighScoreActivity.this, new ServerCallback() {
+        //Displaying highscores
+        highscoreManager.GetHighscore(highScoreName, HighScoreActivity.this, new ServerCallback() {
             @Override
             public void onSuccess() {
                myHighsScore = new ArrayList<String>(Arrays.asList(HighscoreManager.getString().split(",")));
                 int i = 0;
                 try {
-
                     myHighsScore.remove(0);
                     myHighsScore.remove(myHighsScore.size()-1);
 
                     for (String item : myHighsScore) {
                         i++;
-                        float time = Float.parseFloat(item)/1000;
+                        float time = Float.parseFloat(item);
 
                         String index = String.valueOf(i);
-                        String tijdAdd = String.format("%.2f",time);
-                        tvTijden.append(index + ". " + tijdAdd + "\n");
+                        String tijdAdd = HighscoreManager.ConverTime(time);
+                        tvTijden.append(index + ".     " + tijdAdd + "\n");
 
-                        if (yourTime == time && i==1)
-                            Toast.makeText(HighScoreActivity.this, "You have set a new highscore!", Toast.LENGTH_SHORT).show();
+                        if (yourTime == time && i==1){
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(HighScoreActivity.this);
+                            notificationManager.notify(i, mBuilder.build());
+                        }
+                            //Toast.makeText(HighScoreActivity.this, "You have set a new highscore!", Toast.LENGTH_SHORT).show();
                         else if (yourTime == time)
-                            tvYourScore.append("Your place: " + String.valueOf(i));
-
+                            tvYourScore.append("\n"+"Your place: " + String.valueOf(i));
                     }
                 }catch (ArrayIndexOutOfBoundsException ex)
                 {
@@ -99,7 +100,7 @@ public class HighScoreActivity extends AppCompatActivity {
             }
         });
     }
-
+    //Clearing local highscore file --NOT IN USE--
     private View.OnClickListener ClearHighScore = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -113,4 +114,6 @@ public class HighScoreActivity extends AppCompatActivity {
             editor1.apply();
         }
     };
+
+
 }

@@ -53,11 +53,12 @@
         android:layout_marginTop="8dp"
         android:scrollbars="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvRoute" />
+        app:layout_constraintTop_toBottomOf="@+id/tvRoute"
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/tvTijden"
-        android:layout_width="157dp"
+        android:layout_width="302dp"
         android:layout_height="397dp"
         android:layout_marginStart="52dp"
         android:layout_marginLeft="52dp"
@@ -71,7 +72,7 @@
         android:layout_height="27dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="56dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvRoute"
         app:srcCompat="@drawable/winner" />

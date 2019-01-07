@@ -33,7 +33,7 @@ public class HighscoreManager  {
     static String stringy;
 
 
-    public void setScores(ArrayList<Score> scores) {
+    /*public void setScores(ArrayList<Score> scores) {
         this.scores = scores;
     }
 
@@ -141,11 +141,11 @@ public class HighscoreManager  {
         this.outputStream = in.readParcelable(ObjectOutputStream.class.getClassLoader());
         this.inputStream = in.readParcelable(ObjectInputStream.class.getClassLoader());
     }
-
+*/
     //VANAF HIER IS ALLES IN GEBRUIK
 
     static public void postTime(final Long time, final String username, Context context){
-        String url = "https://aothomeracer.azurewebsites.net/api/score/";
+        final String url = "https://aothomeracer.azurewebsites.net/api/score/";
 
         Map<String, String> params = new HashMap<String, String>();
         params.put("RaceName", username);
@@ -156,7 +156,7 @@ public class HighscoreManager  {
             @Override
             public void onResponse(JSONObject response) {
                 Log.d("response", response.toString());;
-                Log.d("HIGHSCOREADD", "HIGHSCORE");;
+                Log.d("HIGHSCOREADD", url);;
             }
         }, new Response.ErrorListener() {
             @Override
@@ -194,4 +194,32 @@ public class HighscoreManager  {
     static public String getString(){
         return stringy;
     }
+
+    static public String ConverTime(float _time){
+        String timeString;
+
+        int Seconds = (int) (_time / 1000);
+        int Minutes = Seconds / 60;
+        int Hour = Minutes / 60;
+        Seconds = Seconds % 60;
+        int MilliSeconds = (int) (_time % 1000);
+        if (Minutes >= 1){
+            timeString = "" + Minutes + " min "
+                    + String.format("%02d", Seconds) + " sec "
+                    + String.format("%02d", MilliSeconds) + " ms";
+        }
+        else if (Hour >= 1){
+            timeString = "" + Hour + " hr "
+                    + String.format("%02d", Minutes) + " min "
+                    + String.format("%02d", Seconds) + " sec";
+        }
+        else {
+            timeString = "" + String.format("%02d", Seconds) + " sec "
+                    + String.format("%02d", MilliSeconds) + " ms";
+        }
+
+        return timeString;
+    }
+
 }
+

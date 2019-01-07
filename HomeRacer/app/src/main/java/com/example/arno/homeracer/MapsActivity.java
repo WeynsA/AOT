@@ -60,12 +60,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation;
 
-    UserData usr = new UserData();
-    Race race = new Race();
-    List<com.example.arno.homeracer.Objects.Location> raceLocations;
-    int index;
-    int finishIndex;
-
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
@@ -76,20 +70,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final static int LOCATION_REQUEST_CODE = 101;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
+    UserData usr = new UserData();
+    Race race = new Race();
+    List<com.example.arno.homeracer.Objects.Location> raceLocations;
+
     Handler handler;
-    Button btnStartRace;
-    Button btnStopRace;
+    Button btnStartRace, btnStopRace;
     Boolean isCounting;
     TextView tvCounter;
-    Marker destMarker;
-    LatLng startLtLn, endLtLn, finishLtLn;
+    Marker destMarker, checkPoint;
+    LatLng startLtLn, checkPntLtLn, finishLtLn;
+    Racer racer;
+    Intent i;
 
-    private Racer racer;
-
-    boolean isRacing;
-    boolean isFinished;
-
-    int Seconds, Minutes, MilliSeconds;
+    boolean isRacing, isFinished, isTour;
+    int Seconds, Minutes, MilliSeconds, index, finishIndex;
     long MilliSecondTime, StartTime, TimeBuff, UpdateTime = 0L;
 
     @Override
@@ -114,29 +109,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         isCounting = false;
         isRacing = false;
         isFinished = false;
+
         try {
             usr = getIntent().getParcelableExtra("userData");
-            endLtLn = usr.getEndLtLn();
+            finishLtLn = usr.getEndLtLn();
             startLtLn = usr.getStartLtLn();
-        }catch (ClassCastException ex){
+            isTour = false;
+        } catch (ClassCastException ex) {
+            isTour = true;
             race = getIntent().getParcelableExtra("userData");
-            /*for (com.example.arno.homeracer.Objects.Location item : race.getLocations()) {
-                raceLocations.addAll()Add(item);
-            }*/
             raceLocations = race.getLocations();
             finishIndex = raceLocations.size() - 1;
             finishLtLn = raceLocations.get(finishIndex).getLocationLtLn();
             startLtLn = NextLocation();
-            endLtLn = NextLocation();
+            checkPntLtLn = NextLocation();
         }
-
-        //racer = new Racer(startLtLn);
 
         tvCounter = findViewById(R.id.tvCounter);
         btnStartRace = findViewById(R.id.btnStartMap);
         btnStopRace = findViewById(R.id.btnStopMap);
         btnStartRace.setOnClickListener(StartClick);
         btnStopRace.setOnClickListener(StopClick);
+
+        i = new Intent(MapsActivity.this, HighScoreActivity.class);
     }
 
     @Override
@@ -145,7 +140,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             outState.putParcelable(KEY_CAMERA_POSITION, mMap.getCameraPosition());
             outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
             super.onSaveInstanceState(outState);
-
         }
     }
 
@@ -155,18 +149,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
 
-        //Settings();
-
-        //racer.Draw(mMap, this);
+        if (isTour) {
+            checkPoint =
+                    mMap.addMarker(new MarkerOptions()
+                            .position(checkPntLtLn)
+                            .title("CheckPoint")
+                            .draggable(true));
+        }
 
         mMap.addMarker(new MarkerOptions()
                 .position(startLtLn)
                 .title("Start!")
                 .draggable(true));
 
-        mMap.addMarker(new MarkerOptions()
-                .position(endLtLn)
-                .draggable(true));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(startLtLn, 13));
 
         mMap.addMarker(new MarkerOptions()
                 .position(finishLtLn)
@@ -188,55 +184,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 LatLng center1 = new LatLng(location.getLatitude(), location.getLongitude());
                 requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE);
 
-                // Prompt the user for permission.
-                //getLocationPermission();
-
-                // Turn on the My Location layer and the related control on the map.
-                //updateLocationUI();
-
                 if (isCounting && !isRacing) {
                     isRacing = true;
 
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(center1, 13));
-
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(center1, 14));
                 }
 
                 if (isCounting && destMarker != null) {
                     Location markerLoc = new Location("Destination");
                     markerLoc.setLatitude(destMarker.getPosition().latitude);
-                    //markerLoc.setLatitude(endLtLn.latitude);
                     markerLoc.setLongitude(destMarker.getPosition().longitude);
-                    //markerLoc.setLongitude(endLtLn.longitude);
+
                     float distance = location.distanceTo(markerLoc);
-                    Log.d(TAG, "onLocationChanged: " + markerLoc);
-                    Log.d("distancevalue", String.valueOf(distance));
 
-                    /*
-
-                    }*/
-                    if (distance < 5000 && index != finishIndex){
-                        mMap.addMarker(new MarkerOptions()
-                                .draggable(true)
-                                .position(NextLocation())
-                                .title(String.valueOf(index)));
-                    }
-                    else if (distance < 5000 && index == finishIndex) {
+                    String destMarkerTitle = destMarker.getTitle();
+                    if (distance < 5000 && index != finishIndex && destMarkerTitle.contains("CheckPoint")) {
+                        checkPoint.remove();
+                        checkPoint =
+                                mMap.addMarker(new MarkerOptions()
+                                        .draggable(true)
+                                        .position(NextLocation())
+                                        .title("CheckPoint"));
+                    } else if (distance < 5000 && index == finishIndex && !isFinished && destMarkerTitle.contains("Finish")) {
                         isFinished = true;
                         Toast.makeText(getApplicationContext(), "You have arrived at your destination", Toast.LENGTH_LONG).show();
 
-                        HighscoreManager.postTime(UpdateTime, usr.getUsername(), MapsActivity.this);
-                        Intent i = new Intent(MapsActivity.this, HighScoreActivity.class);
-                        //i.putExtra("userData", usr);
                         i.putExtra("YourTime", Float.valueOf(UpdateTime));
                         i.putExtra("playerName", getIntent().getStringExtra("playerName"));
+
+                        PostTime();
                         StopCounter();
                         startActivity(i);
                         finish();
-                    }
-                    else{
+                    } else {
                         //Toast.makeText(getApplicationContext(), "not at destination", Toast.LENGTH_LONG).show();
                         Log.d("toast", "locations are not the same" + distance);
-
                     }
                 }
             }
@@ -261,7 +243,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
-
             }
 
             @Override
@@ -307,7 +288,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private View.OnClickListener StartClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
             if (!isCounting) {
                 isCounting = true;
                 StartCounter();
@@ -336,7 +316,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         StartTime = SystemClock.uptimeMillis();
         handler.postDelayed(runnable, 0);
 
-        //racer.Move(endLtLn, racer.marker, 30000);
+        //racer.Move(checkPntLtLn, racer.marker, 30000);
     }
 
     public void PauzeCounter() {
@@ -377,10 +357,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    public LatLng NextLocation(){
+    public LatLng NextLocation() {
         LatLng _loc = raceLocations.get(index).getLocationLtLn();
         index++;
         return _loc;
+    }
+
+    public void PostTime() {
+        if (isTour) {
+            HighscoreManager.postTime(UpdateTime, race.getRaceName(), MapsActivity.this);
+            i.putExtra("userData", race);
+
+        } else {
+            HighscoreManager.postTime(UpdateTime, usr.getUsername(), MapsActivity.this);
+            i.putExtra("userData", usr);
+        }
     }
 }
 
