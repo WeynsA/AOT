@@ -2,6 +2,8 @@ package com.example.arno.homeracer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -12,11 +14,14 @@ import com.example.arno.homeracer.Objects.Race;
 import com.example.arno.homeracer.Objects.UserData;
 
 public class Homescreen extends AppCompatActivity {
-    TextView startLong, startLat, userId, userNameTv, endLong, endLat, tvStartStreet, tvEndStreet, tvYourScore;
+    TextView startLong, startLat, userId, userNameTv, endLong, endLat, tvStartStreet, tvEndStreet, tvTourName;
     Button btnRace1, btnRace2, btnHighScore;
     JsonObjectRequest jsonObjectRequest;
     Boolean toHome;
     public static Intent i;
+    ConstraintLayout myLayout;
+    UserData usr = new UserData();
+    Race race = new Race();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,18 +38,20 @@ public class Homescreen extends AppCompatActivity {
         userNameTv = findViewById(R.id.tvUserName);
         tvEndStreet = findViewById(R.id.tvEndStreet);
         tvStartStreet = findViewById(R.id.tvStartStreet);
+        myLayout = findViewById(R.id.homescreenLayout);
+        tvTourName = findViewById(R.id.tvTourName);
 
         Intent intent = getIntent();
         try {
-            final UserData race = intent.getParcelableExtra("userData");
-            int _id = race.getUserId();
-            String _username = race.getUsername();
-            Double _startLat = race.getStartLat();
-            Double _startLong = race.getStartLong();
-            Double _endLat = race.getEndLat();
-            Double _endLong = race.getEndLong();
-            String _startStreet = race.getStartStreetName();
-            String _endStreet = race.getEndStreetName();
+            usr = intent.getParcelableExtra("userData");
+            int _id = usr.getUserId();
+            String _username = usr.getUsername();
+            Double _startLat = usr.getStartLat();
+            Double _startLong = usr.getStartLong();
+            Double _endLat = usr.getEndLat();
+            Double _endLong = usr.getEndLong();
+            String _startStreet = usr.getStartStreetName();
+            String _endStreet = usr.getEndStreetName();
 
             userNameTv.setText("Welcome " + _username + "!");
             startLat.setText("StartLat: " + _startLat);
@@ -55,14 +62,17 @@ public class Homescreen extends AppCompatActivity {
             tvEndStreet.setText(_endStreet);
 
             toHome = false;
-            race.setRace(toHome);
+            usr.setRace(toHome);
 
             i = new Intent(Homescreen.this, MapsActivity.class);
-            i.putExtra("userData", race);
+            i.putExtra("userData", usr);
         }catch (ClassCastException ex){
-            final Race race = intent.getParcelableExtra("userData");
-            userNameTv.setText("Your about to start race: " + race.getRaceName() + "!");
-
+            myLayout.removeAllViews();
+            myLayout.addView(tvTourName);
+            myLayout.addView(btnRace1);
+            btnRace1.setText("Start");
+            race = intent.getParcelableExtra("userData");
+            tvTourName.append(race.getRaceName());
             i = new Intent(Homescreen.this, MapsActivity.class);
             i.putExtra("userData", race);
             i.putExtra("typeRace", "Tour");
@@ -85,7 +95,6 @@ public class Homescreen extends AppCompatActivity {
     private View.OnClickListener StartRace2 = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            final UserData usr = getIntent().getParcelableExtra("userData");
             usr.setRace(true);
             i.putExtra("Finished", false);
             startActivity(i);
@@ -96,6 +105,8 @@ public class Homescreen extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             Intent i = new Intent(Homescreen.this, HighScoreActivity.class);
+            i.putExtra("userData", usr);
+            i.putExtra("playerName", getIntent().getStringExtra("playerName"));
             startActivity(i);
         }
     };

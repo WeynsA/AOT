@@ -43,7 +43,7 @@ import java.util.List;
 public class Login extends AppCompatActivity {
 
     private Button btnStart, btnDev;
-    private TextView tvRegister;
+    private TextView tvRegister, tvStatus;
     private EditText etUser, etPassword;
     public ProgressBar spinner;
 
@@ -67,6 +67,7 @@ public class Login extends AppCompatActivity {
         tvRegister = findViewById(R.id.tvRegister);
         etUser = findViewById(R.id.etUser);
         etPassword = findViewById(R.id.etPassword);
+        tvStatus = findViewById(R.id.tv_status);
 
         isTour = false;
 
@@ -104,7 +105,7 @@ public class Login extends AppCompatActivity {
             else if (!isTour)
                 GetUserData();
             else {
-                Toast.makeText(Login.this, "Please select what type of race you selected.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(Login.this, "Please select the type of race.", Toast.LENGTH_SHORT).show();
                 SwapLayout();
             }
             SwapLayout();
@@ -184,6 +185,7 @@ public class Login extends AppCompatActivity {
                             startActivity(intent);
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            tvStatus.setText("The race name was not found. Please try again.");
                         }
                     }
                 },
@@ -196,6 +198,9 @@ public class Login extends AppCompatActivity {
                             Toast toast = Toast.makeText(getApplicationContext(), "Request time out, try again!", Toast.LENGTH_LONG);
                             toast.show();
                         }
+                        else
+                            tvStatus.setText("The race name was not found. Please try again.");
+
                         SwapLayout();
 
                     }
@@ -241,9 +246,12 @@ public class Login extends AppCompatActivity {
                                 startActivity(intent);
                             } catch (JSONException e) {
                                 e.printStackTrace();
+                                tvStatus.setText("The race name was not found. Please try again.");
                             }
                         } else
                             Toast.makeText(Login.this, "Race does not exist yet!", Toast.LENGTH_SHORT).show();
+                        tvStatus.setText("The race name was not found. Please try again.");
+
                         SwapLayout();
 
                     }
@@ -257,7 +265,8 @@ public class Login extends AppCompatActivity {
                             toast.show();
                         } else if (error.networkResponse == null) {
                             Toast.makeText(Login.this, "Name does not exist.", Toast.LENGTH_SHORT).show();
-                        }
+                        }else
+                            tvStatus.setText("The race name was not found. Please try again.");
                         SwapLayout();
                     }
                 }

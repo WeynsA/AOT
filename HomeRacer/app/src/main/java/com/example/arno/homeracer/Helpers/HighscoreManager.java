@@ -203,15 +203,16 @@ public class HighscoreManager  {
         int Hour = Minutes / 60;
         Seconds = Seconds % 60;
         int MilliSeconds = (int) (_time % 1000);
-        if (Minutes >= 1){
-            timeString = "" + Minutes + " min "
-                    + String.format("%02d", Seconds) + " sec "
-                    + String.format("%02d", MilliSeconds) + " ms";
-        }
-        else if (Hour >= 1){
+
+        if (Hour >= 1){
             timeString = "" + Hour + " hr "
                     + String.format("%02d", Minutes) + " min "
                     + String.format("%02d", Seconds) + " sec";
+        }
+        else if (Minutes >= 1){
+            timeString = "" + Minutes + " min "
+                    + String.format("%02d", Seconds) + " sec "
+                    + String.format("%02d", MilliSeconds) + " ms";
         }
         else {
             timeString = "" + String.format("%02d", Seconds) + " sec "

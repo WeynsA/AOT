@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HighScoreActivity extends AppCompatActivity {
-    TextView tvHighscore, tvTijden, tvRoutes, tvYourScore;
+    TextView tvHighscore, tvTijden, tvRoutes, tvYourScore, tvHeader, tvPlayerName;
     Button btnClear;
     HighscoreManager highscoreManager = new HighscoreManager();
     List<String> myHighsScore;
@@ -36,6 +36,15 @@ public class HighScoreActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_high_score);
+
+        tvHighscore = findViewById(R.id.tvHighScore);
+        tvRoutes = findViewById(R.id.tvRoutes);
+        tvTijden = findViewById(R.id.tvTijden);
+        btnClear = findViewById(R.id.btnClear);
+        tvYourScore = findViewById(R.id.tvYourTime);
+        tvHeader = findViewById(R.id.tvTijd);
+        tvPlayerName = findViewById(R.id.tvPlayerName);
+
         try{
             usr = getIntent().getParcelableExtra("userData");
             highScoreName = usr.getUsername();
@@ -43,13 +52,10 @@ public class HighScoreActivity extends AppCompatActivity {
             race = getIntent().getParcelableExtra("userData");
             highScoreName = race.getRaceName();
         }
+        tvHeader.append(highScoreName);
         String playerName = getIntent().getStringExtra("playerName");
+        tvPlayerName.setText(playerName + ", your race stats:");
 
-        tvHighscore = findViewById(R.id.tvHighScore);
-        tvRoutes = findViewById(R.id.tvRoutes);
-        tvTijden = findViewById(R.id.tvTijden);
-        btnClear = findViewById(R.id.btnClear);
-        tvYourScore = findViewById(R.id.tvYourTime);
 
         //Making table scrollable
         ScrollingMovementMethod letsgo = new ScrollingMovementMethod();
